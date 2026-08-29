@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAYSTACK Admin Dashboard</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070e1a;--bg2:#0d1929;--bg3:#111f35;--bg4:#162540;
+  --border:rgba(255,255,255,0.07);--border-light:rgba(255,255,255,0.12);
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-bright:#f1f5f9;
+  --accent:#2d8eff;--accent2:#00d4aa;--accent3:#a855f7;
+  --accent-dim:rgba(45,142,255,0.1);--accent-glow:rgba(45,142,255,0.2);
+  --error:#f87171;--error-dim:rgba(248,113,113,0.1);
+  --success:#4ade80;--success-dim:rgba(74,222,128,0.1);
+  --warn:#facc15;
+  --grad:linear-gradient(135deg,#2d8eff,#00d4aa);
+  --font:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --sidebar-w:240px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+
+/* Layout */
+.admin-app{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.admin-sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.sidebar-header{
+  padding:20px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;justify-content:space-between;
+}
+.sidebar-header h2{font-size:.95rem;font-weight:700;color:var(--text-bright)}
+.sidebar-header p{font-size:.7rem;color:var(--text-dim);margin-top:1px}
+.sidebar-badge{
+  font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;
+  background:rgba(248,113,113,0.15);color:var(--error);letter-spacing:.05em;text-transform:uppercase;
+}
+.admin-nav{padding:12px 8px;flex:1}
+.admin-nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:10px 12px;border-radius:10px;border:none;background:none;
+  color:var(--text-dim);font-family:var(--font);font-size:.875rem;font-weight:500;
+  cursor:pointer;text-align:left;transition:all .2s;margin-bottom:2px;
+}
+.admin-nav-item:hover{background:var(--bg3);color:var(--text)}
+.admin-nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.admin-nav-item .ico{font-size:1rem;width:20px;text-align:center}
+.nav-divider{height:1px;background:var(--border);margin:8px 12px}
+.sidebar-footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:6px;
+}
+.admin-user-info{font-size:.8rem}
+.admin-user-info strong{color:var(--text-bright);display:block;font-size:.875rem}
+.admin-user-info span{color:var(--text-dim)}
+.logout-btn{
+  display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;
+  background:none;border:1px solid var(--border);color:var(--error);
+  font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;
+  transition:all .2s;width:100%;justify-content:center;
+}
+.logout-btn:hover{background:var(--error-dim);border-color:var(--error)}
+
+/* Main area */
+.admin-main{
+  flex:1;height:100vh;overflow-y:auto;display:flex;flex-direction:column;
+}
+.admin-topbar{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(7,14,26,0.95);
+  backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
+}
+.admin-topbar h1{font-size:1.1rem;font-weight:700;color:var(--text-bright)}
+.admin-topbar p{font-size:.75rem;color:var(--text-dim)}
+.admin-content{padding:28px;flex:1}
+
+/* Stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:18px;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+.stat-card.blue::before{background:var(--grad)}
+.stat-card.green::before{background:linear-gradient(90deg,#4ade80,#22c55e)}
+.stat-card.purple::before{background:linear-gradient(90deg,#a855f7,#7c3aed)}
+.stat-card.orange::before{background:linear-gradient(90deg,#fb923c,#f97316)}
+.stat-card.teal::before{background:linear-gradient(90deg,#00d4aa,#0891b2)}
+.stat-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:6px}
+.stat-val{font-size:1.8rem;font-weight:800;color:var(--text-bright);font-family:var(--mono);line-height:1}
+.stat-sub{font-size:.75rem;color:var(--text-dim);margin-top:6px}
+.stat-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.6rem;opacity:.2}
+
+/* Cards & Tables */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;
+}
+.card-header h2{font-size:1rem;font-weight:700;color:var(--text-bright)}
+.search-box{
+  display:flex;align-items:center;gap:6px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:8px;padding:6px 12px;
+}
+.search-box input{
+  background:none;border:none;color:var(--text);font-family:var(--font);font-size:.875rem;
+  outline:none;width:200px;
+}
+.filter-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.ftab{
+  padding:5px 12px;border-radius:7px;font-size:.75rem;font-weight:600;
+  border:none;background:none;color:var(--text-dim);cursor:pointer;font-family:var(--font);
+  transition:all .2s;
+}
+.ftab.active{background:var(--accent-dim);color:var(--accent)}
+.ftab:hover:not(.active){background:var(--bg3);color:var(--text)}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--text-dim);padding:10px 16px;
+  border-bottom:1px solid var(--border);background:var(--bg3);
+}
+.data-table td{padding:12px 16px;font-size:.85rem;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,0.02)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:50px;font-size:.7rem;font-weight:700}
+.badge-green{background:var(--success-dim);color:var(--success)}
+.badge-red{background:var(--error-dim);color:var(--error)}
+.badge-warn{background:rgba(250,204,21,0.1);color:var(--warn)}
+.badge-blue{background:var(--accent-dim);color:var(--accent)}
+.badge-purple{background:rgba(168,85,247,0.1);color:var(--accent3)}
+.user-avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--accent-dim);
+  color:var(--accent);display:inline-flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.8rem;margin-right:8px;vertical-align:middle;
+}
+.btn{
+  padding:8px 14px;border-radius:8px;font-family:var(--font);font-size:.85rem;font-weight:600;
+  cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#1a7be8}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--bg3)}
+.btn-danger{background:var(--error-dim);color:var(--error);border:1px solid rgba(248,113,113,0.3)}
+.btn-danger:hover{background:var(--error);color:#fff}
+.btn-sm{padding:4px 10px;font-size:.75rem}
+
+/* Form inputs */
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:.8rem;font-weight:600;color:var(--text-dim);margin-bottom:6px}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-family:var(--font);font-size:.875rem;outline:none;
+}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{
+  border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow);
+}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(4,7,16,0.75);backdrop-filter:blur(6px);
+  z-index:999;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal{
+  background:var(--bg2);border:1px solid var(--border-light);border-radius:16px;
+  width:550px;max-width:100%;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,0.8);
+}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--text-bright)}
+.modal-close{background:none;border:none;font-size:18px;color:var(--text-dim);cursor:pointer}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border)}
+.pagination button{padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;font-family:var(--font);font-size:.8rem}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Toast */
+.toast-admin{
+  position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border-light);
+  color:var(--text-bright);padding:12px 18px;border-radius:10px;font-size:.875rem;font-weight:500;
+  box-shadow:0 12px 30px rgba(0,0,0,0.5);display:none;z-index:1000;
+}
+
+.section-hidden{display:none}
+@media(max-width:850px){
+  .admin-sidebar{display:none}
+  .admin-content{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="admin-app">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <div>
+        <h2>DAYSTACK Control</h2>
+        <p id="admin-email-sidebar" style="color:var(--accent);font-size:.72rem"></p>
+      </div>
+      <span class="sidebar-badge">ADMIN</span>
+    </div>
+
+    <nav class="admin-nav">
+      <button class="admin-nav-item active" onclick="showSection('overview')" id="nav-overview">
+        <span class="ico">◭</span> Overview
+      </button>
+      <button class="admin-nav-item" onclick="showSection('users')" id="nav-users">
+        <span class="ico">👥</span> Users Directory
+      </button>
+      <button class="admin-nav-item" onclick="showSection('emails')" id="nav-emails">
+        <span class="ico">📧</span> Email Center
+      </button>
+      <button class="admin-nav-item" onclick="showSection('audit')" id="nav-audit">
+        <span class="ico">📋</span> Audit Log
+      </button>
+      <div class="nav-divider"></div>
+      <button class="admin-nav-item" onclick="window.open('/app','_blank')">
+        <span class="ico">🚀</span> Launch App Cockpit
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-user-info">
+        <strong id="admin-name-sidebar">Administrator</strong>
+        <span id="admin-role-sidebar">Platform Admin</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 id="section-title">Platform Overview</h1>
+        <p id="section-sub">Real-time stats and Cycle 1 data isolation oversight</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="refreshAll()" class="btn btn-ghost btn-sm">⟳ Refresh</button>
+        <a href="/landing" class="btn btn-ghost btn-sm" style="text-decoration:none">← Landing</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── Overview Section ──────────────────────────────────── -->
+      <div id="section-overview">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card blue"><div class="stat-label">TOTAL MEMBERS</div><div class="stat-val" id="ovTotal">--</div><div class="stat-sub">Registered accounts</div><div class="stat-ico">👥</div></div>
+          <div class="stat-card green"><div class="stat-label">VERIFIED MEMBERS</div><div class="stat-val" id="ovVerified">--</div><div class="stat-sub">Email confirmed</div><div class="stat-ico">✉️</div></div>
+          <div class="stat-card orange"><div class="stat-label">UNVERIFIED MEMBERS</div><div class="stat-val" id="ovUnverified">--</div><div class="stat-sub">Pending confirmation</div><div class="stat-ico">⏳</div></div>
+          <div class="stat-card teal"><div class="stat-label">ACTIVE MEMBERS</div><div class="stat-val" id="ovActive">--</div><div class="stat-sub">Active last 7 days</div><div class="stat-ico">🟢</div></div>
+          <div class="stat-card purple"><div class="stat-label">NEW MEMBERS</div><div class="stat-val" id="ovNewToday">--</div><div class="stat-sub">Joined today</div><div class="stat-ico">🎉</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>📋 Platform Activity &amp; Audit Stream</h2>
+          </div>
+          <div id="overview-audit-list" style="padding:16px;">
+            <div style="text-align:center;color:var(--text-dim);padding:20px;">Loading activity stream…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Users Section ─────────────────────────────────────── -->
+      <div id="section-users" class="section-hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>👥 Registered Users</h2>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <div class="search-box">
+                <span style="opacity:.5">🔍</span>
+                <input type="text" placeholder="Search members..." id="userSearch" oninput="searchUsers()">
+              </div>
+              <div class="filter-tabs">
+                <button class="ftab active" onclick="filterUsers('all',this)">All Members</button>
+                <button class="ftab" onclick="filterUsers('verified',this)">Verified</button>
+                <button class="ftab" onclick="filterUsers('unverified',this)">Unverified</button>
+                <button class="ftab" onclick="filterUsers('active',this)">Active</button>
+                <button class="ftab" onclick="filterUsers('inactive',this)">Inactive</button>
+              </div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Last Active</th>
+                  <th>Modules</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">Loading users…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span id="pageInfo" style="font-size:.8rem;color:var(--text-dim)">Showing users</span>
+            <div style="display:flex;gap:6px;">
+              <button id="prevPage" onclick="changePage(-1)" disabled>← Prev</button>
+              <button id="nextPage" onclick="changePage(1)" disabled>Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Email Center Section ──────────────────────────────── -->
+      <div id="section-emails" class="section-hidden">
+        <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;align-items:start;">
+          <!-- Composer -->
+          <div class="card" style="padding:20px;">
+            <h2 style="font-size:1.05rem;color:var(--text-bright);margin-bottom:14px;">✉️ Compose Email Communication</h2>
+            
+            <div class="form-row">
+              <label>Recipient Mode *</label>
+              <select id="emailRecType" onchange="toggleEmailRecipientField()">
+                <option value="all">All Registered Users (Global Broadcast)</option>
+                <option value="all_active">All Active Users (24h)</option>
+                <option value="specific">Specific User Email</option>
+              </select>
+            </div>
+
+            <div class="form-row" id="specificEmailWrap" style="display:none;">
+              <label>Recipient Email Address</label>
+              <input type="email" id="emailSpecificInput" placeholder="user@example.com" />
+            </div>
+
+            <div class="form-row">
+              <label>Load Predefined Template (7 Built-in Drafts)</label>
+              <select id="emailTplSelect" onchange="loadSelectedTemplate()">
+                <option value="">-- Select Template to Load --</option>
+                <option value="welcome_daystack">[Onboarding] Welcome to DAYSTACK</option>
+                <option value="feedback_followup">[Engagement] Feedback Follow-up</option>
+                <option value="issue_followup">[Support] Support & Issue Follow-up</option>
+                <option value="concerns_checkin">[Retention] Concerns / Check-in</option>
+                <option value="target_reminder">[Milestones] Target Cycle Reminder</option>
+                <option value="target_completed">[Celebration] Target Cycle Completed</option>
+                <option value="onboarding_reminder">[Onboarding] Onboarding Reminder</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label>Subject Line *</label>
+              <input type="text" id="emailSubject" placeholder="e.g. Welcome to DAYSTACK 🚀" style="font-weight:600;" />
+            </div>
+
+            <div class="form-row">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label style="margin:0;">Message Body (Markdown / Text) *</label>
+                <span style="font-size:.7rem;color:var(--text-dim)">Variables: <code>{{name}}</code>, <code>{{cycleNumber}}</code>, <code>{{progress}}</code></span>
+              </div>
+              <textarea id="emailBody" rows="10" placeholder="Type message body here..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+              <button class="btn btn-ghost" onclick="previewEmailModal()">👁️ Preview</button>
+              <button class="btn btn-accent" onclick="sendAdminEmail()">🚀 Send Email</button>
+            </div>
+          </div>
+
+          <!-- Templates Library & Sent History -->
+          <div>
+            <div class="card" style="padding:16px;margin-bottom:16px;">
+              <h2 style="font-size:.95rem;color:var(--text-bright);margin-bottom:10px;">📚 7 System Draft Templates</h2>
+              <div style="display:flex;flex-direction:column;gap:8px;" id="templatesList">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <div class="card" style="padding:16px;">
+              <h2 style="font-size:.95rem;color:var(--text-bright);margin-bottom:10px;">📜 Sent Campaign History</h2>
+              <div id="sentHistoryArea" style="max-height:220px;overflow-y:auto;font-size:.8rem;">
+                <div style="color:var(--text-dim);text-align:center;padding:16px;">Loading history…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Audit Section ─────────────────────────────────────── -->
+      <div id="section-audit" class="section-hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>📋 Security &amp; Administrative Event Log</h2>
+          </div>
+          <div style="padding:16px;" id="full-audit-list">
+            <div style="text-align:center;color:var(--text-dim);padding:20px;">Loading audit log…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Modal Container -->
+<div class="modal-overlay" id="adminModalOverlay" onclick="if(event.target===this)closeAdminModal()">
+  <div class="modal" id="adminModal"></div>
+</div>
+
+<div class="toast-admin" id="adminToast"></div>
+
+<script>
+const PREDEFINED_TEMPLATES = {
+  welcome_daystack: {
+    name: 'Welcome to DAYSTACK',
+    category: 'Onboarding',
+    subject: 'Welcome to DAYSTACK — Your Productivity Cockpit 🚀',
+    body: 'Hello {{name}},\n\nWelcome to DAYSTACK! Your personal productivity command center is ready.\n\nHere is how to get started on your journey:\n1. 🎯 Define your roadmap & cycle milestones.\n2. 🌅 Lock your morning MITs (Most Important Tasks).\n3. 🔁 Set up daily Keystone Habits.\n4. ⏱️ Sprint with Pomodoro deep work sessions.\n\nEvery day counts. Stay focused, stay disciplined!\n\nBest regards,\nThe DAYSTACK Team'
+  },
+  feedback_followup: {
+    name: 'Feedback Follow-up',
+    category: 'Engagement',
+    subject: 'We would love your feedback on DAYSTACK 💬',
+    body: 'Hi {{name}},\n\nWe noticed you have been actively using DAYSTACK for your daily routines and target cycle tracking.\n\nHow has your experience been so far? Are there any tools, calculators, or workflows you would like us to improve or add?\n\nSimply reply to this message with your thoughts—we read and value every suggestion!\n\nWarm regards,\nDAYSTACK Product Team'
+  },
+  issue_followup: {
+    name: 'Support & Issue Follow-up',
+    category: 'Support',
+    subject: 'Update regarding your DAYSTACK support request 🛠️',
+    body: 'Hello {{name}},\n\nThis is a follow-up regarding your recent question / inquiry on DAYSTACK.\n\nOur system updates have been deployed. Please refresh your session or let us know if you are still encountering any difficulties.\n\nWe are here to support your productivity journey!\n\nBest,\nDAYSTACK Support Team'
+  },
+  concerns_checkin: {
+    name: 'Concerns / Check-in',
+    category: 'Retention',
+    subject: 'Checking in on your productivity momentum 💪',
+    body: 'Hi {{name}},\n\nJust checking in! We noticed a slight pause in your daily logging. Consistency is a marathon, not a sprint.\n\nEven logging 1 habit or completing a quick 25-minute Pomodoro session today keeps your momentum alive!\n\nYour active cycle is waiting for you in your cockpit.\n\nRooting for you,\nDAYSTACK Team'
+  },
+  target_reminder: {
+    name: 'Target Cycle Reminder',
+    category: 'Milestones',
+    subject: '🎯 Target Cycle {{cycleNumber}} Milestone Reminder',
+    body: 'Hello {{name}},\n\nFriendly reminder regarding your active Target Cycle {{cycleNumber}}.\n\nActive Goal: {{targetGoal}}\nCurrent Progress: {{progress}}%\n\nReview your milestone checkpoints and keep pushing forward towards your target horizon.\n\nStay relentless,\nDAYSTACK Mission Control'
+  },
+  target_completed: {
+    name: 'Target Cycle Completed',
+    category: 'Celebration',
+    subject: '🎉 Congratulations on completing Target Cycle {{cycleNumber}}!',
+    body: 'Congratulations {{name}}!\n\nYou have officially completed Target Cycle {{cycleNumber}} in DAYSTACK! 🎉\n\nYour discipline, consistency, and dedication have paid off. Take a moment to reflect on your journey in the Evening Debrief, and when you are ready, configure your next cycle targets.\n\nKeep ascending,\nThe DAYSTACK Team'
+  },
+  onboarding_reminder: {
+    name: 'Onboarding Reminder',
+    category: 'Onboarding',
+    subject: '🚀 Complete your DAYSTACK guided walkthrough',
+    body: 'Hi {{name}},\n\nYou are just a step away from mastering your full productivity cockpit! Take the 60-second guided onboarding tour to discover all features:\n- ⚔️ Kalvium Dojo 10-Belt Progression\n- 🎓 CAT & Semester CGPA Calculators\n- 🏛️ Attendance Safety Buffer Calculator\n- 💳 Finance & Spaced Repetition Mistakes\n\nLog in today to finish your tour!\n\nBest,\nDAYSTACK Team'
+  }
+};
+
+let currentSection = 'overview';
+let currentFilter = 'all';
+let currentPage = 1;
+let searchQuery = '';
+let searchTimeout = null;
+let adminUser = null;
+let usersCache = [];
+
+(async function init() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) { window.location.href = '/auth?redirect=admin'; return; }
+    const data = await res.json();
+    adminUser = data.user;
+    if (adminUser.role !== 'admin') {
+      window.location.href = '/app';
+      return;
+    }
+    document.getElementById('admin-name-sidebar').textContent = adminUser.name || 'Admin';
+    document.getElementById('admin-email-sidebar').textContent = adminUser.email || '';
+    renderTemplatesList();
+    loadStats();
+    loadAuditPreview();
+  } catch {
+    window.location.href = '/auth';
+  }
+})();
+
+function showSection(name) {
+  ['overview','users','emails','audit'].forEach(s => {
+    document.getElementById(`section-${s}`).classList.toggle('section-hidden', s !== name);
+    document.getElementById(`nav-${s}`).classList.toggle('active', s === name);
+  });
+  currentSection = name;
+  const titles = {
+    overview: ['Platform Overview','Real-time stats and Cycle 1 data isolation oversight'],
+    users: ['Users Directory','Search, filter, inspect and manage user accounts'],
+    emails: ['Email Center','Compose and dispatch targeted campaigns with 7 system drafts'],
+    audit: ['Audit Log','Track administrative and security events']
+  };
+  document.getElementById('section-title').textContent = titles[name][0];
+  document.getElementById('section-sub').textContent   = titles[name][1];
+  if (name === 'users') loadUsers();
+  if (name === 'emails') loadEmailHistory();
+  if (name === 'audit') loadFullAudit();
+}
+
+function refreshAll() {
+  if (currentSection === 'overview') { loadStats(); loadAuditPreview(); }
+  if (currentSection === 'users') loadUsers();
+  if (currentSection === 'emails') loadEmailHistory();
+  if (currentSection === 'audit') loadFullAudit();
+  toast('Refreshed ✓');
+}
+
+async function loadStats() {
+  try {
+    const res  = await fetch('/api/admin/stats');
+    const data = await res.json();
+    if (!data.success) return;
+    const s = data.stats;
+    document.getElementById('ovTotal').textContent = s.total_users || 0;
+    document.getElementById('ovVerified').textContent = s.verifiedUsers || 0;
+    document.getElementById('ovUnverified').textContent = (s.total_users - (s.verifiedUsers || 0)) || 0;
+    document.getElementById('ovActive').textContent = s.activeUsers || 0;
+    document.getElementById('ovNewToday').textContent = s.new_today || 0;
+  } catch(e) {}
+}
+
+async function loadUsers(page = currentPage) {
+  currentPage = page;
+  const tbody = document.getElementById('usersTableBody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-dim);">Loading users…</td></tr>';
+  try {
+    const params = new URLSearchParams({ q: searchQuery, filter: currentFilter, page });
+    const res  = await fetch(`/api/admin/users?${params}`);
+    const data = await res.json();
+    if (!data.success || !data.users.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-dim);">No users found.</td></tr>`;
+      return;
+    }
+    usersCache = data.users;
+    tbody.innerHTML = data.users.map(u => {
+      let statusHtml = '';
+      if (u.disabled) statusHtml = '<span class="badge badge-red">Disabled</span>';
+      else if (!u.verified) statusHtml = '<span class="badge badge-warn">Unverified</span>';
+      else if (u.isActive) statusHtml = '<span class="badge badge-green">Active</span>';
+      else statusHtml = '<span class="badge" style="background:var(--bg3);color:var(--text-dim);">Inactive</span>';
+
+      return `
+      <tr>
+        <td>
+          <span class="user-avatar">${(u.name||'?')[0].toUpperCase()}</span>
+          <strong style="color:var(--text-bright)">${esc(u.name)}</strong>
+          ${u.role === 'admin' ? '<span class="badge badge-purple" style="font-size:.6rem;margin-left:4px">ADMIN</span>' : ''}
+        </td>
+        <td style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">${esc(u.email)}</td>
+        <td>${statusHtml}</td>
+        <td style="font-size:.8rem;color:var(--text-dim);">${fmtDate(u.createdAt).split(',')[0]}</td>
+        <td style="font-size:.8rem;color:var(--text-dim);">${fmtDate(u.lastActiveAt)}</td>
+        <td style="font-size:.75rem;color:var(--text-dim);">${(u.activeModules||[]).length} enabled</td>
+        <td style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" onclick="inspectUser('${u.id}')">🔍 Details</button>
+        </td>
+      </tr>
+      `;
+    }).join('');
+    document.getElementById('pageInfo').textContent = `Page ${data.page} of ${data.pages}`;
+    document.getElementById('prevPage').disabled = data.page <= 1;
+    document.getElementById('nextPage').disabled = data.page >= data.pages;
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load users.</td></tr>';
+  }
+}
+
+function filterUsers(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  loadUsers();
+}
+
+function searchUsers() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    searchQuery = document.getElementById('userSearch').value.trim();
+    currentPage = 1;
+    loadUsers();
+  }, 350);
+}
+
+function changePage(delta) {
+  loadUsers(currentPage + delta);
+}
+
+function renderTemplatesList(){
+  const container = document.getElementById('templatesList');
+  if(!container) return;
+  container.innerHTML = Object.entries(PREDEFINED_TEMPLATES).map(([k, t]) => `
+    <div style="background:var(--bg3);padding:10px 12px;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="loadTemplateKey('${k}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong style="color:var(--text-bright);font-size:.85rem">${esc(t.name)}</strong>
+        <span class="badge badge-blue" style="font-size:.65rem">${esc(t.category)}</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject)}</div>
+    </div>
+  `).join('');
+}
+
+function loadTemplateKey(key){
+  const t = PREDEFINED_TEMPLATES[key];
+  if(!t) return;
+  document.getElementById('emailSubject').value = t.subject;
+  document.getElementById('emailBody').value = t.body;
+  document.getElementById('emailTplSelect').value = key;
+  toast(`Loaded template: "${t.name}"`);
+}
+
+function loadSelectedTemplate(){
+  const k = document.getElementById('emailTplSelect').value;
+  if(k) loadTemplateKey(k);
+}
+
+function toggleEmailRecipientField(){
+  const val = document.getElementById('emailRecType').value;
+  document.getElementById('specificEmailWrap').style.display = val === 'specific' ? 'block' : 'none';
+}
+
+async function loadEmailHistory(){
+  try {
+    const res = await fetch('/api/admin/email/history');
+    const data = await res.json();
+    const area = document.getElementById('sentHistoryArea');
+    if(!data.history || !data.history.length){
+      area.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:16px;">No sent email records yet.</div>';
+      return;
+    }
+    area.innerHTML = data.history.slice().reverse().map(h => `
+      <div style="border-bottom:1px solid var(--border);padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;color:var(--text-bright);font-weight:600;">
+          <span>${esc(h.subject)}</span>
+          <span class="badge badge-green" style="font-size:.65rem">Sent</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:var(--text-dim);font-size:.7rem;margin-top:2px;">
+          <span>${h.recipient_count || 1} recipients</span>
+          <span style="font-family:var(--mono)">${fmtDate(h.timestamp)}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch(e){}
+}
+
+function previewEmailModal(){
+  const subj = document.getElementById('emailSubject').value || 'Subject';
+  const body = document.getElementById('emailBody').value || 'Body';
+  const preview = body.replace(/{{name}}/g, 'Alex').replace(/{{cycleNumber}}/g, '1').replace(/{{progress}}/g, '35');
+
+  openAdminModal('Email Preview (Sample Substitution)', `
+    <div style="background:var(--bg3);padding:14px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
+      <div style="font-size:.75rem;color:var(--text-dim);">SUBJECT:</div>
+      <strong style="color:var(--text-bright);font-size:.95rem;">${esc(subj)}</strong>
+      <div style="margin-top:12px;font-size:.85rem;line-height:1.6;white-space:pre-wrap;color:var(--text);">${esc(preview)}</div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn btn-accent" onclick="closeAdminModal()">Done</button>
+    </div>
+  `);
+}
+
+async function sendAdminEmail(){
+  const recType = document.getElementById('emailRecType').value;
+  const specificEmail = document.getElementById('emailSpecificInput').value.trim();
+  const subject = document.getElementById('emailSubject').value.trim();
+  const body = document.getElementById('emailBody').value.trim();
+
+  if(!subject || !body) return toast('Please provide a subject line and body', 'error');
+
+  if(recType === 'all' || recType === 'all_active'){
+    const confirmed = confirm(`Safety confirmation: Are you sure you want to send this email to ${recType === 'all' ? 'ALL registered users' : 'ALL active users'}?`);
+    if(!confirmed) return;
+  }
+
+  toast('Sending email…');
+  try {
+    const res = await fetch('/api/admin/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipientType: recType, specificEmail, subject, body })
+    });
+    const data = await res.json();
+    if(data.success){
+      toast('✅ Email dispatched successfully!');
+      loadEmailHistory();
+      loadStats();
+    } else {
+      toast(data.error || 'Failed to send email', 'error');
+    }
+  } catch {
+    toast('Network error sending email', 'error');
+  }
+}
+
+async function adminUserAction(userId, action) {
+  const msgs = {
+    disable: 'Are you sure you want to deactivate this account? They will lose access immediately.',
+    enable: 'Are you sure you want to reactivate this account?',
+    reset_onboarding: 'Are you sure you want to reset onboarding? The user will have to complete the setup tour again.'
+  };
+  if (!confirm(msgs[action])) return;
+
+  try {
+    const res = await fetch(`/api/admin/users/${userId}/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(data.message || 'Action completed successfully');
+      loadUsers();
+      inspectUser(userId); // Refresh modal
+    } else {
+      toast(data.error || 'Action failed', 'error');
+    }
+  } catch (e) {
+    toast('Network error during action', 'error');
+  }
+}
+
+async function inspectUser(userId) {
+  try {
+    const res = await fetch(`/api/admin/users/${userId}`);
+    const data = await res.json();
+    if (!data.success || !data.user) return toast('User details not found', 'error');
+    const u = data.user;
+    
+    // Status Logic
+    let statusBadge = '';
+    if (u.account.disabled) statusBadge = '<span class="badge badge-red">Disabled</span>';
+    else if (!u.account.emailConfirmedAt) statusBadge = '<span class="badge badge-warn">Unverified</span>';
+    else if (u.account.lastLoginAt && (Date.now() - new Date(u.account.lastLoginAt).getTime() < 14*86400000)) statusBadge = '<span class="badge badge-green">Active</span>';
+    else statusBadge = '<span class="badge" style="background:var(--bg3);color:var(--text-dim);">Inactive</span>';
+
+    // Build Modal
+    openAdminModal(`Member Overview`, `
+      <div style="font-size:.85rem;line-height:1.6;">
+        
+        <!-- Identity Block -->
+        <div style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg3);border-radius:12px;margin-bottom:18px;">
+          <div style="width:50px;height:50px;background:var(--accent-dim);color:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;">
+            ${(u.account.name||'?')[0].toUpperCase()}
+          </div>
+          <div style="flex:1;">
+            <strong style="color:var(--text-bright);font-size:1.1rem;display:block;">${esc(u.account.name || 'Member')} ${u.account.role === 'admin' ? '<span class="badge badge-purple" style="font-size:.65rem;vertical-align:middle;margin-left:6px;">ADMIN</span>' : ''}</strong>
+            <div style="color:var(--text-dim);font-size:.8rem;margin-top:2px;">
+              ${esc(u.account.email)} • ID: <code style="font-family:var(--mono);font-size:.75rem">${u.account.id}</code>
+            </div>
+          </div>
+          <div>${statusBadge}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+          
+          <!-- Lifecycle -->
+          <div>
+            <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Account Lifecycle</h3>
+            <div style="background:var(--bg3);padding:12px;border-radius:10px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:var(--text-dim)">Joined</span>
+                <span style="color:var(--text-bright)">${fmtDate(u.account.createdAt).split(',')[0]}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:var(--text-dim)">Last Active</span>
+                <span style="color:var(--text-bright)">${fmtDate(u.account.lastLoginAt)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:var(--text-dim)">Onboarding</span>
+                <span style="color:${u.onboarding.completed ? 'var(--success)' : 'var(--warn)'}">${u.onboarding.completed ? 'Completed' : 'Step ' + u.onboarding.step}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Personalization -->
+          <div>
+            <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Personalization</h3>
+            <div style="background:var(--bg3);padding:12px;border-radius:10px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:var(--text-dim)">Target</span>
+                <span style="color:var(--text-bright);text-align:right;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(u.targetCycle.cycleGoal)}">${esc(u.targetCycle.cycleGoal)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:var(--text-dim)">Cycle</span>
+                <span style="color:var(--text-bright)">${u.targetCycle.currentCycle} (${u.targetCycle.status})</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:var(--text-dim)">Progress</span>
+                <span style="color:var(--accent)">${u.targetCycle.scores?.overallScore || 0}%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Activity Summary (Privacy Preserving) -->
+        <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Activity Summary</h3>
+        <div style="background:var(--bg3);padding:12px;border-radius:10px;display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;text-align:center;margin-bottom:18px;">
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.totalTasksCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Tasks</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.activeHabitsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Active Habits</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.pomodoroSessions}</div><div style="font-size:.7rem;color:var(--text-dim)">Pomo Sessions</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.goalsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Goals Set</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.journalEntriesCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Journal Entries</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.financeEntriesCount > 0 ? 'Enabled' : 'Disabled'}</div><div style="font-size:.7rem;color:var(--text-dim)">Finance Mod</div></div>
+        </div>
+
+        <!-- Admin Actions -->
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border);">
+          <div style="display:flex;gap:8px;">
+            ${u.account.disabled 
+              ? `<button class="btn btn-ghost btn-sm" style="color:var(--success);border-color:rgba(74,222,128,0.3)" onclick="adminUserAction('${u.account.id}', 'enable')">🟢 Reactivate Account</button>`
+              : `<button class="btn btn-ghost btn-sm" style="color:var(--error);border-color:rgba(248,113,113,0.3)" onclick="adminUserAction('${u.account.id}', 'disable')">🔴 Deactivate Account</button>`
+            }
+            <button class="btn btn-ghost btn-sm" onclick="adminUserAction('${u.account.id}', 'reset_onboarding')">↺ Reset Onboarding</button>
+          </div>
+          
+          <button class="btn btn-accent" onclick="closeAdminModal(); showSection('emails'); document.getElementById('emailRecType').value='specific'; toggleEmailRecipientField(); document.getElementById('emailSpecificInput').value='${esc(u.account.email)}';">✉️ Message</button>
+        </div>
+
+      </div>
+    `);
+  } catch (e) {
+    toast('Error fetching user data', 'error');
+  }
+}
+
+async function loadAuditPreview() {
+  const container = document.getElementById('overview-audit-list');
+  try {
+    const res  = await fetch('/api/admin/audit');
+    const data = await res.json();
+    if (!data.success || !data.log.length) {
+      container.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No events recorded yet.</div>';
+      return;
+    }
+    container.innerHTML = data.log.slice(0, 8).map(e => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.8rem;">
+        <div>
+          <strong style="color:var(--text-bright)">${esc(e.action)}</strong>
+          <span style="color:var(--text-dim);margin-left:6px">${e.email ? esc(e.email) : ''}</span>
+        </div>
+        <span style="color:var(--text-dim);font-family:var(--mono);font-size:.75rem">${fmtDate(e.timestamp)}</span>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function loadFullAudit() {
+  const container = document.getElementById('full-audit-list');
+  try {
+    const res  = await fetch('/api/admin/audit');
+    const data = await res.json();
+    if (!data.success || !data.log.length) {
+      container.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No events recorded yet.</div>';
+      return;
+    }
+    container.innerHTML = data.log.map(e => `
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem;">
+        <div>
+          <strong style="color:var(--text-bright)">${esc(e.action)}</strong>
+          <span style="color:var(--text-dim);margin-left:6px">${e.email ? esc(e.email) : ''}</span>
+          ${e.details ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:2px;">${esc(e.details)}</div>` : ''}
+        </div>
+        <span style="color:var(--text-dim);font-family:var(--mono);font-size:.75rem">${fmtDate(e.timestamp)}</span>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+function openAdminModal(title, html){
+  const overlay = document.getElementById('adminModalOverlay');
+  const modal = document.getElementById('adminModal');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">${title}</div>
+      <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    </div>
+    ${html}
+  `;
+  overlay.style.display = 'flex';
+}
+
+function closeAdminModal(){
+  document.getElementById('adminModalOverlay').style.display = 'none';
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/landing';
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return d; }
+}
+function toast(msg, type='success') {
+  const el = document.getElementById('adminToast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.borderColor = type === 'error' ? 'var(--error)' : 'var(--border-light)';
+  el.style.color = type === 'error' ? 'var(--error)' : 'var(--text-bright)';
+  setTimeout(() => el.style.display='none', 3000);
+}
+</script>
+</body>
+</html>

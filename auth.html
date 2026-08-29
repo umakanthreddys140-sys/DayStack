@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAYSTACK — Sign In / Create Account</title>
+<meta name="description" content="Sign in or create your free DAYSTACK account — your productivity tracker for everything you need.">
+<meta name="theme-color" content="#091120">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#091120;--bg2:#0d1929;--bg3:#111f35;--bg4:#162540;
+  --border:rgba(255,255,255,0.07);--border-light:rgba(255,255,255,0.12);
+  --border-focus:rgba(45,142,255,0.5);
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-bright:#f1f5f9;
+  --accent:#2d8eff;--accent2:#00d4aa;--accent3:#a855f7;
+  --accent-dim:rgba(45,142,255,0.12);--accent-glow:rgba(45,142,255,0.3);
+  --error:#f87171;--error-dim:rgba(248,113,113,0.1);
+  --success:#4ade80;--success-dim:rgba(74,222,128,0.1);
+  --warn:#facc15;--warn-dim:rgba(250,204,21,0.1);
+  --grad:linear-gradient(135deg,#2d8eff,#00d4aa);
+  --font:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font)}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── Page layout ─────────────────────────────────────────────── */
+.page{flex:1;display:flex;min-height:100vh}
+.side-panel{
+  flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 5%;
+  background:linear-gradient(135deg,var(--bg) 0%,var(--bg3) 100%);
+  position:relative;overflow:hidden;
+}
+.side-panel::before{
+  content:'';position:absolute;top:-20%;left:-10%;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(45,142,255,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.side-brand{margin-bottom:48px}
+.side-brand a{display:flex;align-items:center;gap:10px;color:var(--text-bright);font-size:1.1rem;font-weight:700;text-decoration:none}
+.side-content h2{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;color:var(--text-bright);line-height:1.2;letter-spacing:-.02em;margin-bottom:16px}
+.side-content h2 .grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.side-content p{color:var(--text-dim);line-height:1.7;font-size:.95rem;max-width:380px}
+.feature-list{margin-top:32px;display:flex;flex-direction:column;gap:12px}
+.feature-item{display:flex;align-items:center;gap:12px;font-size:.875rem;color:var(--text-dim)}
+.feature-item::before{content:'✓';color:var(--accent2);font-weight:700;font-size:.8rem;width:20px;height:20px;background:rgba(0,212,170,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center;line-height:20px}
+
+.form-panel{
+  width:100%;max-width:480px;display:flex;flex-direction:column;justify-content:center;
+  padding:40px 48px;background:var(--bg2);border-left:1px solid var(--border);
+}
+
+/* ── Form card ───────────────────────────────────────────────── */
+.form-card{width:100%;animation:slideIn .4s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.form-card.hidden{display:none}
+.form-header{margin-bottom:28px}
+.form-header h1{font-size:1.6rem;font-weight:800;color:var(--text-bright);letter-spacing:-.02em;margin-bottom:6px}
+.form-header p{font-size:.875rem;color:var(--text-dim);line-height:1.5}
+.form-header a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
+.form-header a:hover{text-decoration:underline}
+
+/* ── Fields ──────────────────────────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--text-dim);margin-bottom:6px;letter-spacing:.02em;text-transform:uppercase}
+.input-wrap{position:relative}
+.input-wrap .input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;opacity:.5}
+.form-input{
+  width:100%;padding:12px 14px 12px 38px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--font);font-size:.95rem;
+  outline:none;transition:border .2s,box-shadow .2s;
+}
+.form-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(45,142,255,0.12)}
+.form-input.error-input{border-color:var(--error);box-shadow:0 0 0 3px var(--error-dim)}
+.form-input::placeholder{color:var(--text-dim);opacity:.7}
+.input-no-icon{padding-left:14px !important}
+
+/* Password field */
+.pass-wrap{position:relative}
+.pass-wrap .toggle-pass{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;font-size:.9rem;
+}
+.pass-wrap .form-input{padding-right:40px}
+
+/* Password strength */
+.pass-strength{margin-top:6px;display:flex;gap:4px;align-items:center}
+.pass-strength-bar{height:3px;flex:1;border-radius:2px;background:var(--bg4);overflow:hidden}
+.pass-strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.pass-strength-label{font-size:.7rem;color:var(--text-dim);min-width:40px}
+
+/* ── Alerts ─────────────────────────────────────────────────── */
+.alert{
+  border-radius:10px;padding:12px 14px;font-size:.875rem;margin-bottom:16px;
+  display:flex;gap:10px;align-items:flex-start;line-height:1.5;
+}
+.alert-error{background:var(--error-dim);border:1px solid rgba(248,113,113,0.3);color:var(--error)}
+.alert-success{background:var(--success-dim);border:1px solid rgba(74,222,128,0.3);color:var(--success)}
+.alert-warn{background:var(--warn-dim);border:1px solid rgba(250,204,21,0.3);color:var(--warn)}
+.alert-info{background:var(--accent-dim);border:1px solid rgba(45,142,255,0.3);color:var(--accent)}
+.alert.hidden{display:none}
+
+/* ── Confirmation Box ────────────────────────────────────────── */
+.confirm-box{
+  background:var(--bg3);border:1px solid var(--border-light);
+  border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;
+}
+.confirm-step{
+  display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;font-size:.875rem;color:var(--text-dim);
+}
+.confirm-step:last-child{margin-bottom:0}
+.confirm-num{
+  width:22px;height:22px;border-radius:50%;background:var(--accent-dim);
+  color:var(--accent);font-size:.75rem;font-weight:700;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn-full{
+  width:100%;padding:13px;border-radius:10px;font-size:.95rem;font-weight:700;
+  cursor:pointer;border:none;font-family:var(--font);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.btn-full:disabled{opacity:.6;cursor:not-allowed}
+.btn-accent-full{background:var(--grad);color:#fff;box-shadow:0 4px 20px var(--accent-glow)}
+.btn-accent-full:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 8px 28px var(--accent-glow)}
+.btn-outline-full{background:transparent;border:1px solid var(--border-light);color:var(--text)}
+.btn-outline-full:hover{border-color:var(--border-focus);background:var(--accent-dim)}
+
+/* Google button */
+.btn-google{
+  background:var(--bg3);border:1px solid var(--border-light);color:var(--text-bright);
+}
+.btn-google:hover{border-color:var(--border-focus);background:var(--bg4)}
+.btn-google svg{width:18px;height:18px}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.form-divider{
+  display:flex;align-items:center;gap:12px;margin:16px 0;font-size:.8rem;color:var(--text-dim);
+}
+.form-divider::before,.form-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Loading spinner ─────────────────────────────────────────── */
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Nav bar ─────────────────────────────────────────────────── */
+.auth-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 5%;border-bottom:1px solid var(--border);
+  background:rgba(9,17,32,0.9);backdrop-filter:blur(16px);
+}
+.auth-nav a{color:var(--text-dim);font-size:.875rem;transition:color .2s}
+.auth-nav a:hover{color:var(--accent)}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media(max-width:768px){
+  .page{flex-direction:column}
+  .side-panel{display:none}
+  .form-panel{max-width:100%;padding:32px 24px;border-left:none;border-top:1px solid var(--border)}
+  .auth-nav{padding:14px 5%}
+}
+@media(max-width:400px){
+  .form-panel{padding:28px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top nav ─────────────────────────────────────────────── -->
+<div class="auth-nav">
+  <a href="/landing" style="display:flex;align-items:center;gap:8px;color:var(--text-bright);font-weight:700;font-size:.95rem;">
+    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+  </a>
+  <div style="display:flex;gap:16px;align-items:center">
+    <a href="/landing">← Back to Home</a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ── Side panel ────────────────────────────────────────── -->
+  <div class="side-panel">
+    <div class="side-brand">
+      <a href="/landing">
+        <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+      </a>
+    </div>
+    <div class="side-content">
+      <h2>Your day. <span class="grad">Your goals.</span><br>Your progress.</h2>
+      <p>Your productivity tracker for everything you need. Create your account to plan your day, build consistent habits, and track your growth.</p>
+      <div class="feature-list">
+        <div class="feature-item">Smart dashboard with daily planning &amp; priorities</div>
+        <div class="feature-item">Habit streaks, consistency rings &amp; routines</div>
+        <div class="feature-item">Long-term goals &amp; milestone tracking</div>
+        <div class="feature-item">Focus sprints with Pomodoro timer</div>
+        <div class="feature-item">Fitness, finance, journal &amp; notes in one place</div>
+        <div class="feature-item">Private, secure &amp; isolated per user</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form panel ─────────────────────────────────────────── -->
+  <div class="form-panel">
+
+    <!-- REGISTER VIEW -->
+    <div class="form-card" id="view-register">
+      <div class="form-header">
+        <h1>Create Account</h1>
+        <p>Already have an account? <a onclick="showView('login')">Sign in →</a></p>
+      </div>
+
+      <div class="alert hidden" id="reg-alert"></div>
+
+      <!-- Google OAuth -->
+      <button type="button" class="btn-full btn-google" onclick="googleLogin()" id="googleRegBtn" style="margin-bottom:4px">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="form-divider">or register with email</div>
+
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label>Full Name</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input class="form-input" id="reg-name" type="text" placeholder="Enter your name" autocomplete="name" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input class="form-input" id="reg-email" type="email" placeholder="Enter your email" autocomplete="email" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Phone Number <span style="color:var(--text-dim);font-weight:400;text-transform:none">(optional)</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">📱</span>
+            <input class="form-input" id="reg-phone" type="tel" placeholder="Enter your phone number">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="pass-wrap">
+            <span class="input-icon" style="left:12px;position:absolute;top:50%;transform:translateY(-50%);opacity:.5">🔑</span>
+            <input class="form-input" id="reg-password" type="password" placeholder="Enter your password" autocomplete="new-password" required oninput="checkStrength(this.value)">
+            <button type="button" class="toggle-pass" onclick="togglePass('reg-password',this)">👁</button>
+          </div>
+          <div class="pass-strength" id="strengthMeter" style="display:none">
+            <div class="pass-strength-bar"><div class="pass-strength-fill" id="strengthFill"></div></div>
+            <div class="pass-strength-label" id="strengthLabel"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="pass-wrap">
+            <span class="input-icon" style="left:12px;position:absolute;top:50%;transform:translateY(-50%);opacity:.5">🔒</span>
+            <input class="form-input" id="reg-confirm" type="password" placeholder="Confirm your password" autocomplete="new-password" required>
+            <button type="button" class="toggle-pass" onclick="togglePass('reg-confirm',this)">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-full btn-accent-full" id="reg-btn">
+          Create Account →
+        </button>
+      </form>
+
+      <p style="font-size:.75rem;color:var(--text-dim);text-align:center;margin-top:16px;line-height:1.5">
+        By creating an account you agree to DAYSTACK terms. Your data is private, secure, and isolated to your account.
+      </p>
+    </div>
+
+    <!-- LOGIN VIEW -->
+    <div class="form-card hidden" id="view-login">
+      <div class="form-header">
+        <h1>Welcome back</h1>
+        <p>Don't have an account? <a onclick="showView('register')">Create one →</a></p>
+      </div>
+
+      <div class="alert hidden" id="login-alert"></div>
+
+      <button type="button" class="btn-full btn-google" onclick="googleLogin()" style="margin-bottom:4px">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="form-divider">or sign in with email</div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input class="form-input" id="login-id" type="email" placeholder="Enter your email" autocomplete="username" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="pass-wrap">
+            <span class="input-icon" style="left:12px;position:absolute;top:50%;transform:translateY(-50%);opacity:.5">🔑</span>
+            <input class="form-input" id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="button" class="toggle-pass" onclick="togglePass('login-password',this)">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-full btn-accent-full" id="login-btn">
+          Sign In →
+        </button>
+      </form>
+    </div>
+
+    <!-- EMAIL CONFIRMATION VIEW -->
+    <div class="form-card hidden" id="view-confirm">
+      <div class="form-header" style="text-align:center;">
+        <div style="font-size:2.4rem;margin-bottom:12px;">✉️</div>
+        <h1>Please confirm your email</h1>
+        <p style="margin-top:6px;">
+          We've sent a confirmation link to <strong id="confirm-email-display" style="color:var(--text-bright);">your email</strong>. Please open that email and confirm your account to continue.
+        </p>
+      </div>
+
+      <div class="alert hidden" id="confirm-alert"></div>
+
+      <div class="confirm-box">
+        <div class="confirm-step">
+          <div class="confirm-num">1</div>
+          <div>Open your email inbox (and check spam / junk if needed).</div>
+        </div>
+        <div class="confirm-step">
+          <div class="confirm-num">2</div>
+          <div>Click the confirmation link to activate your account.</div>
+        </div>
+        <div class="confirm-step">
+          <div class="confirm-num">3</div>
+          <div>After confirming your email, return to DAYSTACK and sign in using your registered credentials.</div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-full btn-accent-full" onclick="showView('login')">
+        Back to Sign In →
+      </button>
+
+      <button type="button" class="btn-full btn-outline-full" id="resendConfirmBtn" onclick="resendConfirmationEmail()" style="margin-top:12px;">
+        Resend Confirmation Email
+      </button>
+
+      <span id="resend-cooldown" style="display:block;text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:10px;"></span>
+
+      <p style="text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:20px;">
+        <a onclick="showView('register')" style="color:var(--accent);cursor:pointer;">← Register with a different email</a>
+      </p>
+    </div>
+
+  </div><!-- /form-panel -->
+</div><!-- /page -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ── State ────────────────────────────────────────────────────── */
+let supabaseClient = null;
+let pendingEmail = '';
+let resendCooldownInterval = null;
+let appConfig = null;
+
+/* ── Init ──────────────────────────────────────────────────────── */
+(async function init() {
+  const params = new URLSearchParams(location.search);
+  const view = params.get('view') || 'login';
+  showView(view === 'register' ? 'register' : 'login');
+
+  try {
+    const res = await fetch('/api/config');
+    const config = await res.json();
+    appConfig = config;
+    if (config.supabaseUrl && config.supabaseAnonKey) {
+      supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+      
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          document.cookie = "sb-access-token=" + session.access_token + "; path=/; max-age=86400";
+        } else {
+          document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+      });
+
+      // Check if already logged in
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        document.cookie = "sb-access-token=" + session.access_token + "; path=/; max-age=86400";
+        window.location.href = '/app';
+      }
+    } else {
+      showAlert('login-alert', 'error', 'Supabase credentials missing. Contact administrator.');
+    }
+  } catch (e) {
+    console.error("Config fetch failed", e);
+  }
+})();
+
+/* ── View switching ───────────────────────────────────────────── */
+function showView(name) {
+  ['register', 'login', 'confirm'].forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.classList.toggle('hidden', v !== name);
+  });
+}
+
+/* ── Alerts ───────────────────────────────────────────────────── */
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `alert alert-${type}`;
+  el.innerHTML = `<span>${type==='error'?'⚠️':type==='success'?'✓':type==='warn'?'⚡':'ℹ️'}</span><span>${msg}</span>`;
+  el.classList.remove('hidden');
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('hidden');
+}
+
+/* ── Button loading state ─────────────────────────────────────── */
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn._text = btn.innerHTML;
+    btn.innerHTML = '<div class="spinner"></div>';
+  } else {
+    btn.innerHTML = btn._text || btn.innerHTML;
+  }
+}
+
+/* ── Password utils ───────────────────────────────────────────── */
+function togglePass(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+function checkStrength(val) {
+  const meter = document.getElementById('strengthMeter');
+  const fill  = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  if (!val) { meter.style.display='none'; return; }
+  meter.style.display = 'flex';
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { pct:'25%', bg:'#f87171', text:'Weak' },
+    { pct:'50%', bg:'#fb923c', text:'Fair' },
+    { pct:'75%', bg:'#facc15', text:'Good' },
+    { pct:'100%', bg:'#4ade80', text:'Strong' }
+  ];
+  const lvl = levels[score - 1] || levels[0];
+  fill.style.width = lvl.pct;
+  fill.style.background = lvl.bg;
+  label.textContent = lvl.text;
+  label.style.color = lvl.bg;
+}
+
+/* ── Google Login (OAuth) ─────────────────────────────────────── */
+async function googleLogin() {
+  if (!supabaseClient) return showAlert('login-alert', 'error', 'System not connected to Supabase.');
+  
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: (appConfig?.appUrl || window.location.origin) + '/app'
+    }
+  });
+
+  if (error) {
+    showAlert('login-alert', 'error', error.message);
+  }
+}
+
+/* ── Register ─────────────────────────────────────────────────── */
+document.getElementById('registerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  hideAlert('reg-alert');
+  if (!supabaseClient) return showAlert('reg-alert', 'error', 'System not connected to Supabase.');
+
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const phone    = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+
+  if (!name) return showAlert('reg-alert','error','Please enter your name.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAlert('reg-alert','error','Please enter a valid email address.');
+  if (password.length < 8) return showAlert('reg-alert','error','Password must be at least 8 characters long.');
+  if (password !== confirm) return showAlert('reg-alert','error','Passwords do not match.');
+
+  setLoading('reg-btn', true);
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: { name, phone },
+        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth'
+      }
+    });
+
+    if (error) {
+      if (error.message.toLowerCase().includes('rate limit')) {
+        return showAlert('reg-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
+      }
+      return showAlert('reg-alert', 'error', error.message);
+    }
+
+    if (data.session) {
+      document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=86400";
+      window.location.href = '/app';
+    } else {
+      pendingEmail = email;
+      const displayEl = document.getElementById('confirm-email-display');
+      if (displayEl) displayEl.textContent = email;
+      const loginInp = document.getElementById('login-id');
+      if (loginInp) loginInp.value = email;
+
+      showView('confirm');
+      // The requirement asked for specific text:
+      // "We've sent a confirmation email to your registered email address. Open the email and confirm your account to continue."
+      // "After confirming your email, return to DAYSTACK and sign in using your registered credentials."
+      // We already have this structure in the HTML.
+    }
+  } catch (err) {
+    showAlert('reg-alert','error','Network error. Please try again.');
+  } finally {
+    setLoading('reg-btn', false);
+  }
+});
+
+/* ── Login ────────────────────────────────────────────────────── */
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  hideAlert('login-alert');
+  if (!supabaseClient) return showAlert('login-alert', 'error', 'System not connected to Supabase.');
+
+  const identifier = document.getElementById('login-id').value.trim();
+  const password   = document.getElementById('login-password').value;
+
+  if (!identifier) return showAlert('login-alert','error','Please enter your email.');
+  if (!password)   return showAlert('login-alert','error','Please enter your password.');
+
+  setLoading('login-btn', true);
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: identifier,
+      password: password
+    });
+
+      if (error) {
+        const msg = error.message || '';
+        if (msg.toLowerCase().includes('rate limit')) {
+          return showAlert('login-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
+        }
+        if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('email_not_confirmed')) {
+          pendingEmail = identifier;
+          const displayEl = document.getElementById('confirm-email-display');
+          if (displayEl) displayEl.textContent = identifier;
+          showView('confirm');
+          showAlert('confirm-alert', 'warn', 'Your email has not been confirmed yet. Please check your inbox for the confirmation link, or click Resend below.');
+          startResendCooldown(60);
+          return;
+        }
+        return showAlert('login-alert', 'error', error.message);
+      }
+    
+    if (data.session) {
+      document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=86400";
+    }
+    window.location.href = '/app';
+  } catch (err) {
+    showAlert('login-alert','error','Network error. Please try again.');
+  } finally {
+    setLoading('login-btn', false);
+  }
+});
+
+/* ── Resend Confirmation Email ────────────────────────────────── */
+async function resendConfirmationEmail() {
+  if (!pendingEmail) {
+    pendingEmail = document.getElementById('login-id').value.trim() || document.getElementById('reg-email').value.trim();
+  }
+  if (!pendingEmail) {
+    return showAlert('confirm-alert', 'error', 'No email address found. Please register or enter your email in the sign-in form.');
+  }
+
+  hideAlert('confirm-alert');
+  setLoading('resendConfirmBtn', true);
+  try {
+    const { error } = await supabaseClient.auth.resend({
+      type: 'signup',
+      email: pendingEmail,
+      options: {
+        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth'
+      }
+    });
+
+    if (error) {
+      if (error.message.toLowerCase().includes('rate limit')) {
+        return showAlert('confirm-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
+      }
+      return showAlert('confirm-alert', 'error', error.message);
+    }
+
+    showAlert('confirm-alert', 'success', 'Confirmation email resent! Please check your inbox and spam folder.');
+    startResendCooldown(60);
+  } catch (err) {
+    showAlert('confirm-alert', 'error', 'Network error. Please try again.');
+  } finally {
+    setLoading('resendConfirmBtn', false);
+  }
+}
+
+/* ── Resend Cooldown ──────────────────────────────────────────── */
+function startResendCooldown(seconds) {
+  const btn = document.getElementById('resendConfirmBtn');
+  const cd  = document.getElementById('resend-cooldown');
+  if (btn) btn.disabled = true;
+  let rem = seconds;
+  if (resendCooldownInterval) clearInterval(resendCooldownInterval);
+  if (cd) cd.textContent = `You can request another confirmation email in ${rem}s`;
+  resendCooldownInterval = setInterval(() => {
+    rem--;
+    if (cd) cd.textContent = rem > 0 ? `You can request another confirmation email in ${rem}s` : '';
+    if (rem <= 0) {
+      clearInterval(resendCooldownInterval);
+      if (btn) btn.disabled = false;
+    }
+  }, 1000);
+}
+</script>
+</body>
+</html>

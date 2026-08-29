@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>DAYSTACK — Your Progress. One Day at a Time.</title>
+  <meta name="description"
+    content="DAYSTACK — Your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life.">
+  <meta name="theme-color" content="#091120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=15">
+  <style>
+    /* Critical CSS for LCP and Layout Stability */
+    .hero { display: grid; grid-template-columns: 240px 1fr; gap: 32px; background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 24px 32px; align-items: center; position: relative; overflow: hidden; }
+    .hero-right { display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
+    .hero-greeting { font-family: var(--font-display); font-size: clamp(18px, 3.5vw, 24px); font-weight: 700; }
+    .nav { padding: 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; font-family: var(--font-main); }
+    .nav-item.active { background: var(--glass-strong); color: var(--accent); }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- SIDEBAR OVERLAY FOR MOBILE -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo-full" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+          <img src="assets/logo.png" alt="DAYSTACK Logo" class="brand-logo-img"
+            style="height: 38px; width: auto; max-width: 180px; object-fit: contain; margin-bottom: 4px;">
+          <div class="brand-sub" id="brandRange"></div>
+        </div>
+        <button type="button" class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle Sidebar (Collapse / Expand)"
+          aria-label="Toggle Sidebar">◀</button>
+      </div>
+
+      <nav class="nav" id="nav">
+        <div class="nav-group-label">Overview</div>
+        <button type="button" class="nav-item active" data-section="dashboard"><span class="ico">◈</span>Dashboard</button>
+        <button type="button" class="nav-item" data-section="planner"><span class="ico">▤</span>Daily Planner</button>
+        <button type="button" class="nav-item" data-section="habits"><span class="ico">⬡</span>Habits</button>
+        <button type="button" class="nav-item" data-section="pomodoro"><span class="ico">⏱</span>Pomodoro</button>
+        <button type="button" class="nav-item" data-section="calendar"><span class="ico">▦</span>Calendar</button>
+
+        <div class="nav-group-label">Growth</div>
+        <button type="button" class="nav-item" data-section="contests"><span class="ico">⚔</span>Contest Tracker</button>
+        <button type="button" class="nav-item" data-section="exams"><span class="ico">📝</span>Exams</button>
+        <button type="button" class="nav-item" data-section="college"><span class="ico">🏛</span>College Updates</button>
+        <button type="button" class="nav-item" data-section="study"><span class="ico">∑</span>Study &amp; Coding</button>
+        <button type="button" class="nav-item" data-section="projects"><span class="ico">◧</span>Projects</button>
+        <!-- Temporarily disabled for future update:
+      <button type="button" class="nav-item" data-section="reading"><span class="ico">▧</span>Reading</button>
+      -->
+
+        <div class="nav-group-label">Body &amp; Life</div>
+        <button type="button" class="nav-item" data-section="fitness"><span class="ico">♥</span>Fitness &amp; Health</button>
+        <button type="button" class="nav-item" data-section="finance"><span class="ico">¤</span>Finance</button>
+
+        <div class="nav-group-label">Mind</div>
+        <button type="button" class="nav-item" data-section="journal"><span class="ico">✎</span>Journal</button>
+        <button type="button" class="nav-item" data-section="mistakes"><span class="ico">⚠</span>Mistakes</button>
+        <button type="button" class="nav-item" data-section="goals"><span class="ico">◎</span>Goals</button>
+        <!-- Temporarily disabled for future update:
+      <button type="button" class="nav-item" data-section="notes"><span class="ico">▥</span>Notes</button>
+      -->
+
+        <div class="nav-group-label">System</div>
+        <button type="button" class="nav-item" data-section="profile"><span class="ico">👤</span>Profile</button>
+        <button type="button" class="nav-item" data-section="analytics"><span class="ico">◭</span>Analytics</button>
+        <button type="button" class="nav-item" data-section="badges"><span class="ico">🏆</span>Achievements</button>
+        <button type="button" class="nav-item" data-section="settings"><span class="ico">⚙</span>Settings</button>
+      </nav>
+
+      <div class="sidebar-footer" id="sidebarFooterProgress" role="button" tabindex="0"
+        title="Click to view Dashboard Overview">
+        <div class="ring-mini" id="sidebarRing">
+          <svg viewBox="0 0 46 46">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--accent)" />
+                <stop offset="100%" stop-color="var(--accent2)" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="23" cy="23" r="18" />
+            <circle class="ring-fill" id="sidebarRingFill" cx="23" cy="23" r="18" />
+          </svg>
+          <span id="sidebarRingLabel">0%</span>
+        </div>
+        <div class="sidebar-footer-text">
+          <div id="sidebarDayLabel">Day 0 / 90</div>
+          <div class="dim">Journey Progress <span class="nav-hint-ico">↗</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE TOPBAR -->
+    <header class="topbar">
+      <button type="button" id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="flex gap-6 align-center">
+        <button type="button" id="mobileNotifBtn" class="icon-btn notif-action-btn relative" aria-label="Notifications" title="Notification Center (🔔)">
+          🔔<span class="notif-badge-pill" id="mobileNotifBadge" style="display:none;">0</span>
+        </button>
+        <button type="button" id="mobileTargetBtn" class="icon-btn target-action-btn" aria-label="Target" title="Target Schedule & Checkpoint">🎯</button>
+        <button type="button" id="globalSearchBtn" class="icon-btn" aria-label="Search" title="Search (press /)">🔍</button>
+        <button type="button" id="mobileQuickAddBtn" class="icon-btn btn-accent" aria-label="Quick Add"
+          title="Quick Add (press n)">+</button>
+      </div>
+
+    </header>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+      <div class="topline">
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSub" class="dim">Welcome back.</p>
+        </div>
+        <div class="topline-actions flex align-center gap-10">
+          <button type="button" id="notifBellBtn" class="icon-btn notif-action-btn relative" title="Notification Center (🔔)" aria-label="Notifications">
+            🔔<span class="notif-badge-pill" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <button type="button" id="targetBtn" class="btn btn-ghost target-action-btn" title="Target Schedule & Checkpoint">🎯 Target</button>
+          <div class="search-wrap">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="globalSearch" placeholder="Search everything… (press /)" autocomplete="off" />
+            <div class="search-dropdown" id="searchDropdown"></div>
+          </div>
+          <button type="button" class="btn btn-accent" id="quickAddBtn" title="Quick Add (press n)">+ Quick Add</button>
+        </div>
+      </div>
+
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <!-- MODAL ROOT -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/chart.umd.js" defer></script>
+  <script defer>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof Chart === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        document.body.appendChild(script);
+      }
+    });
+  </script>
+  <script src="app.js?v=15"></script>
+</body>
+
+</html>

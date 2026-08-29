@@ -1,0 +1,11 @@
+[
+  {
+    "id": "tpl_custom_mytest",
+    "isSystem": false,
+    "category": "Test",
+    "title": "My Custom Template",
+    "subject": "Testing Custom Templates",
+    "body": "Hello {{name}}, this is a custom template test.",
+    "updatedAt": "2026-08-19T14:18:03.680Z"
+  }
+]

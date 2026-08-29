@@ -1,0 +1,6 @@
+{
+  "name": "DAYSTACK — Day Tracker",
+  "description": "Personal operating system and 184-day cycle tracker",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

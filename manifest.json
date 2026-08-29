@@ -1,0 +1,16 @@
+{
+  "name": "DAYSTACK — Your Progress. One Day at a Time.",
+  "short_name": "DAYSTACK",
+  "description": "DAYSTACK is your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life in one place.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#091120",
+  "theme_color": "#091120",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

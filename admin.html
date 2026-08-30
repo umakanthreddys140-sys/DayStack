@@ -232,7 +232,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <span class="ico">📋</span> Audit Log
       </button>
       <div class="nav-divider"></div>
-      <button class="admin-nav-item" onclick="window.open('/app','_blank')">
+      <button class="admin-nav-item" onclick="window.open('app.html','_blank')">
         <span class="ico">🚀</span> Launch App Cockpit
       </button>
     </nav>
@@ -255,7 +255,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <button onclick="refreshAll()" class="btn btn-ghost btn-sm">⟳ Refresh</button>
-        <a href="/landing" class="btn btn-ghost btn-sm" style="text-decoration:none">← Landing</a>
+        <a href="/" class="btn btn-ghost btn-sm" style="text-decoration:none">← Landing</a>
       </div>
     </div>
 
@@ -482,11 +482,11 @@ let usersCache = [];
 (async function init() {
   try {
     const res = await fetch('/api/auth/me');
-    if (!res.ok) { window.location.href = '/auth?redirect=admin'; return; }
+    if (!res.ok) { window.location.href = 'auth.html?redirect=admin'; return; }
     const data = await res.json();
     adminUser = data.user;
     if (adminUser.role !== 'admin') {
-      window.location.href = '/app';
+      window.location.href = 'app.html';
       return;
     }
     document.getElementById('admin-name-sidebar').textContent = adminUser.name || 'Admin';
@@ -495,7 +495,7 @@ let usersCache = [];
     loadStats();
     loadAuditPreview();
   } catch {
-    window.location.href = '/auth';
+    window.location.href = 'auth.html';
   }
 })();
 
@@ -908,7 +908,7 @@ function closeAdminModal(){
 
 async function logout() {
   await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/landing';
+  window.location.href = '/';
 }
 
 function esc(s) {

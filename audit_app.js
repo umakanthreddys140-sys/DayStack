@@ -21,8 +21,8 @@ function check(label, condition, details = '') {
 
 // 1. Files Existence & Non-Empty
 const requiredFiles = [
+  'app.html',
   'index.html',
-  'landing.html',
   'auth.html',
   'admin.html',
   'app.js',
@@ -46,8 +46,8 @@ for (const f of requiredFiles) {
 }
 
 // 2. Checking HTML Navigation IDs match JS listeners
-console.log('\n2. Verifying DOM Elements & Selectors in index.html:');
-const indexHtml = fs.readFileSync('index.html', 'utf-8');
+console.log('\n2. Verifying DOM Elements & Selectors in app.html:');
+const indexHtml = fs.readFileSync('app.html', 'utf-8');
 const expectedElements = [
   'targetBtn',
   'mobileTargetBtn',
@@ -74,7 +74,7 @@ const expectedElements = [
 ];
 
 for (const id of expectedElements) {
-  check(`Element #${id} exists in index.html`, indexHtml.includes(`id="${id}"`));
+  check(`Element #${id} exists in app.html`, indexHtml.includes(`id="${id}"`));
 }
 
 // 3. Verifying Navigation Sections in index.html
@@ -124,8 +124,8 @@ async function testEndpoints() {
     check('API: GET /api/cycle/state returns cycle status', cycleState && cycleState.success && cycleState.state.status === 'LOCKED');
 
     // Landing HTML
-    const landing = await fetch(`${BASE}/landing`).then(r => r.text());
-    check('Page: GET /landing returns valid HTML', landing.includes('<!DOCTYPE html>') && landing.includes('DAYSTACK'));
+    const landing = await fetch(`${BASE}/`).then(r => r.text());
+    check('Page: GET / returns valid landing HTML', landing.includes('<!DOCTYPE html>') && landing.includes('DAYSTACK'));
 
     // Auth HTML
     const auth = await fetch(`${BASE}/auth`).then(r => r.text());

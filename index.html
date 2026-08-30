@@ -1,176 +1,890 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>DAYSTACK — Your Progress. One Day at a Time.</title>
-  <meta name="description"
-    content="DAYSTACK — Your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life.">
-  <meta name="theme-color" content="#091120">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
-  <style>
-    /* Critical CSS for LCP and Layout Stability */
-    .hero { display: grid; grid-template-columns: 240px 1fr; gap: 32px; background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 24px 32px; align-items: center; position: relative; overflow: hidden; }
-    .hero-right { display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
-    .hero-greeting { font-family: var(--font-display); font-size: clamp(18px, 3.5vw, 24px); font-weight: 700; }
-    .nav { padding: 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
-    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; font-family: var(--font-main); }
-    .nav-item.active { background: var(--glass-strong); color: var(--accent); }
-  </style>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAYSTACK — Your Progress. One Day at a Time.</title>
+<meta name="description" content="DAYSTACK is your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life in one place.">
+<meta name="theme-color" content="#091120">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Base Reset & Tokens ─────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#091120;--bg2:#0d1929;--bg3:#111f35;--bg4:#162540;
+  --border:rgba(255,255,255,0.07);--border-light:rgba(255,255,255,0.12);
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-bright:#f1f5f9;
+  --accent:#2d8eff;--accent2:#00d4aa;--accent3:#a855f7;
+  --accent-dim:rgba(45,142,255,0.12);--accent-glow:rgba(45,142,255,0.3);
+  --grad:linear-gradient(135deg,#2d8eff,#00d4aa);
+  --grad2:linear-gradient(135deg,#a855f7,#2d8eff);
+  --font:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
 
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ── Nav ─────────────────────────────────────────────────────── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5%;height:64px;
+  background:rgba(9,17,32,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:background .3s;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:700;color:var(--text-bright)}
+.nav-logo svg{flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:10px}
+.nav-links a:not(.btn){
+  padding:8px 14px;border-radius:8px;font-size:.875rem;font-weight:500;
+  color:var(--text-dim);transition:color .2s,background .2s;
+}
+.nav-links a:not(.btn):hover{color:var(--text-bright);background:var(--accent-dim)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;font-family:var(--font);font-weight:700;cursor:pointer;transition:all .2s;border:none;outline:none;text-decoration:none}
+.btn-primary,
+.nav-links a.btn-primary,
+.mobile-nav a.btn-primary{
+  background:var(--grad) !important;color:#ffffff !important;padding:9px 20px;font-size:.88rem;
+  font-weight:700 !important;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,0.3);
+  box-shadow:0 4px 18px var(--accent-glow);border:1px solid rgba(255,255,255,0.18);
+}
+.btn-primary:hover,
+.nav-links a.btn-primary:hover,
+.mobile-nav a.btn-primary:hover{
+  transform:translateY(-1px);box-shadow:0 6px 24px rgba(45,142,255,0.55);color:#ffffff !important;
+}
+.btn-ghost,
+.nav-links a.btn-ghost{
+  background:rgba(255,255,255,0.04);border:1px solid var(--border-light);
+  color:var(--text-bright) !important;padding:8px 18px;font-size:.88rem;font-weight:600;
+}
+.btn-ghost:hover,
+.nav-links a.btn-ghost:hover{
+  border-color:var(--accent);color:#ffffff !important;background:var(--accent-dim);
+}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.hamburger span{width:22px;height:2px;background:var(--text);border-radius:2px;transition:.3s}
+.mobile-nav{
+  display:none;position:fixed;top:64px;left:0;right:0;z-index:99;
+  background:rgba(9,17,32,0.98);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:16px 5% 24px;
+  flex-direction:column;gap:8px;
+}
+.mobile-nav a{
+  padding:12px 16px;border-radius:10px;font-size:.95rem;font-weight:500;
+  color:var(--text-dim);transition:all .2s;
+}
+.mobile-nav a:hover{color:var(--text-bright);background:var(--accent-dim)}
+.mobile-nav .btn-primary{width:100%;justify-content:center;margin-top:8px}
+
+/* ── Hero ────────────────────────────────────────────────────── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:100px 5% 60px;
+  position:relative;overflow:hidden;
+}
+.hero-glow{
+  position:absolute;top:20%;left:50%;transform:translate(-50%,-50%);
+  width:900px;height:900px;border-radius:50%;
+  background:radial-gradient(circle,rgba(45,142,255,0.12) 0%,transparent 70%);
+  pointer-events:none;animation:pulse 6s ease-in-out infinite;
+}
+.hero-glow2{
+  position:absolute;bottom:-10%;right:-5%;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,170,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-glow3{
+  position:absolute;top:55%;left:-5%;
+  width:380px;height:380px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+@keyframes pulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--accent-dim);border:1px solid rgba(45,142,255,0.3);
+  border-radius:50px;padding:6px 16px;font-size:.8rem;font-weight:600;
+  color:var(--accent);margin-bottom:24px;letter-spacing:.05em;
+  animation:fadeUp .6s ease both;
+}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero h1{
+  font-size:clamp(2.5rem,6vw,4.8rem);font-weight:800;line-height:1.12;
+  letter-spacing:-0.03em;color:var(--text-bright);margin-bottom:20px;
+  animation:fadeUp .6s ease .1s both;
+}
+.hero h1 .grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{
+  font-size:clamp(1.05rem,2vw,1.25rem);color:var(--text-dim);max-width:680px;
+  line-height:1.7;margin-bottom:36px;animation:fadeUp .6s ease .2s both;
+}
+.hero-bullets{
+  display:flex;gap:16px;flex-wrap:wrap;justify-content:center;
+  font-size:.85rem;color:var(--text-dim);margin-bottom:32px;
+  animation:fadeUp .6s ease .25s both;
+}
+.hero-bullet{display:inline-flex;align-items:center;gap:6px}
+.hero-bullet span{color:var(--accent2);font-weight:700}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s ease .3s both}
+
+.hero-stats{
+  display:flex;gap:40px;margin-top:56px;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp .6s ease .4s both;
+}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:1.8rem;font-weight:800;color:var(--text-bright);font-family:var(--mono)}
+.hero-stat .lbl{font-size:.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+.hero-preview{
+  margin-top:56px;width:100%;max-width:820px;
+  border-radius:20px;border:1px solid var(--border-light);
+  background:var(--bg2);overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,0.5),0 0 0 1px var(--border);
+  animation:fadeUp .8s ease .5s both;
+}
+.hero-preview-bar{
+  display:flex;align-items:center;gap:8px;padding:14px 18px;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot-r{background:#ff5f57}
+.dot-y{background:#febc2e}
+.dot-g{background:#28c840}
+.preview-url{
+  flex:1;text-align:center;font-size:.75rem;font-family:var(--mono);
+  color:var(--text-dim);background:var(--bg4);border-radius:6px;padding:4px 12px;
+}
+.preview-content{
+  display:grid;grid-template-columns:200px 1fr;min-height:260px;
+}
+.preview-sidebar{
+  border-right:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:4px;
+}
+.preview-nav-item{
+  padding:7px 10px;border-radius:6px;font-size:.75rem;font-weight:500;
+  color:var(--text-dim);display:flex;align-items:center;gap:8px;
+}
+.preview-nav-item.active{background:var(--accent-dim);color:var(--accent)}
+.preview-nav-item .dot2{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.preview-main{padding:18px;display:flex;flex-direction:column;gap:12px}
+.preview-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.preview-card{background:var(--bg3);border-radius:10px;padding:12px;border:1px solid var(--border)}
+.preview-card .plabel{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.preview-card .pval{font-size:1.2rem;font-weight:700;color:var(--text-bright)}
+.preview-card .pbar{height:3px;border-radius:2px;background:var(--bg4);margin-top:8px}
+.preview-card .pbar-fill{height:100%;border-radius:2px;background:var(--grad)}
+.preview-row{display:flex;gap:8px}
+.preview-tag{font-size:.65rem;padding:3px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-weight:600}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Dot-Grid Background ─────────────────────────────────────────── */
+.dot-grid-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.dot-grid-bg svg{width:100%;height:100%;opacity:.35}
+
+/* ── Module Marquee ──────────────────────────────────────────────── */
+.marquee-wrap{
+  width:100%;max-width:820px;overflow:hidden;margin-top:44px;
+  mask-image:linear-gradient(90deg,transparent,black 10%,black 90%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,black 10%,black 90%,transparent);
+  position:relative;z-index:2;animation:fadeUp .7s ease .45s both;
+}
+.marquee-track{display:flex;gap:10px;width:max-content;animation:marquee 34s linear infinite;}
+.marquee-track:hover{animation-play-state:paused}
+.marquee-pill{
+  display:inline-flex;align-items:center;gap:7px;padding:7px 16px;
+  border-radius:50px;background:rgba(13,25,41,0.9);border:1px solid rgba(255,255,255,0.1);
+  font-size:.78rem;font-weight:600;color:var(--text-dim);white-space:nowrap;flex-shrink:0;
+  transition:color .2s,border-color .2s;
+}
+.marquee-pill:hover{color:var(--accent);border-color:rgba(45,142,255,0.35)}
+.marquee-pill .mpico{font-size:.9rem}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── Breakdown stats ────────────────────────────────────────────── */
+.problem-stats{display:flex;border:1px solid var(--border-light);border-radius:14px;overflow:hidden;margin-top:24px;}
+.prob-tier{flex:1;padding:16px 14px;text-align:center;border-right:1px solid var(--border)}
+.prob-tier:last-child{border-right:none}
+.prob-tier .pt-label{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px}
+.prob-tier .pt-count{font-size:1.5rem;font-weight:800;font-family:var(--mono)}
+.prob-tier .pt-total{font-size:.7rem;color:var(--text-dim);margin-top:1px}
+.prob-tier.easy .pt-label,.prob-tier.easy .pt-count{color:#00d4aa}
+.prob-tier.med .pt-label,.prob-tier.med .pt-count{color:#f97316}
+.prob-tier.hard .pt-label,.prob-tier.hard .pt-count{color:#a855f7}
+
+/* ── Section commons ─────────────────────────────────────────── */
+.section{padding:100px 5%}
+.section-label{
+  font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:12px;
+}
+.section-title{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;color:var(--text-bright);line-height:1.15;letter-spacing:-.02em;margin-bottom:16px}
+.section-sub{font-size:1rem;color:var(--text-dim);max-width:580px;line-height:1.7}
+.section-header{text-align:center;margin-bottom:64px}
+.section-header .section-sub{margin:0 auto}
+.divider{width:60px;height:3px;background:var(--grad);border-radius:3px;margin:0 auto 20px}
+
+/* ── About ───────────────────────────────────────────────────── */
+.about{background:var(--bg2)}
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;max-width:1100px;margin:0 auto;
+}
+.about-points{display:flex;flex-direction:column;gap:20px;margin-top:32px}
+.about-point{display:flex;gap:14px;align-items:flex-start}
+.about-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--accent-dim);display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;margin-top:2px;
+}
+.about-point h4{font-size:.95rem;font-weight:700;color:var(--text-bright);margin-bottom:4px}
+.about-point p{font-size:.875rem;color:var(--text-dim);line-height:1.6}
+.about-visual{
+  background:var(--bg3);border-radius:20px;border:1px solid var(--border-light);
+  padding:28px;display:flex;flex-direction:column;gap:14px;
+}
+.metric-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.metric-label{font-size:.875rem;color:var(--text-dim);flex:1}
+.metric-bar{flex:2;height:6px;border-radius:3px;background:var(--bg4);overflow:hidden}
+.metric-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.metric-fill.blue{background:var(--grad)}
+.metric-fill.teal{background:linear-gradient(90deg,#00d4aa,#00b894)}
+.metric-fill.purple{background:linear-gradient(90deg,#a855f7,#7c3aed)}
+.metric-fill.orange{background:linear-gradient(90deg,#f97316,#ea580c)}
+.metric-fill.pink{background:linear-gradient(90deg,#ec4899,#db2777)}
+.metric-pct{font-size:.8rem;font-weight:700;color:var(--text-bright);min-width:36px;text-align:right;font-family:var(--mono)}
+
+/* ── Features ────────────────────────────────────────────────── */
+.features{background:var(--bg)}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;max-width:1200px;margin:0 auto;
+}
+.feat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:26px;transition:all .3s;position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  background:linear-gradient(135deg,var(--accent-dim) 0%,transparent 60%);
+  opacity:0;transition:.3s;
+}
+.feat-card:hover{transform:translateY(-4px);border-color:rgba(45,142,255,0.3);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+.feat-card:hover::before{opacity:1}
+.feat-icon{
+  width:48px;height:48px;border-radius:14px;background:var(--accent-dim);
+  border:1px solid rgba(45,142,255,0.2);display:flex;align-items:center;
+  justify-content:center;font-size:1.35rem;margin-bottom:16px;
+  position:relative;
+}
+.feat-card h3{font-size:1.05rem;font-weight:700;color:var(--text-bright);margin-bottom:8px}
+.feat-card p{font-size:.875rem;color:var(--text-dim);line-height:1.65}
+.feat-tag{
+  display:inline-block;margin-top:14px;font-size:.7rem;font-weight:600;
+  padding:3px 10px;border-radius:50px;
+  background:var(--accent-dim);color:var(--accent);
+}
+
+/* ── How It Works ────────────────────────────────────────────── */
+.how{background:var(--bg2)}
+.steps{
+  display:flex;flex-direction:column;gap:0;max-width:740px;margin:0 auto;position:relative;
+}
+.steps::before{
+  content:'';position:absolute;left:28px;top:40px;bottom:40px;width:2px;
+  background:linear-gradient(to bottom,var(--accent),var(--accent2));
+}
+.step{display:flex;gap:24px;padding:28px 0;position:relative}
+.step-num{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:var(--bg3);border:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:800;color:var(--accent);font-family:var(--mono);
+  position:relative;z-index:1;
+}
+.step-body h3{font-size:1.05rem;font-weight:700;color:var(--text-bright);margin-bottom:6px;padding-top:14px}
+.step-body p{font-size:.875rem;color:var(--text-dim);line-height:1.65}
+
+/* ── Trust ───────────────────────────────────────────────────── */
+.trust{background:var(--bg)}
+.trust-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;max-width:1100px;margin:0 auto;
+}
+.trust-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:26px;display:flex;flex-direction:column;gap:12px;
+}
+.trust-icon{font-size:1.8rem}
+.trust-card h3{font-size:1rem;font-weight:700;color:var(--text-bright)}
+.trust-card p{font-size:.875rem;color:var(--text-dim);line-height:1.65}
+
+/* ── Final CTA ───────────────────────────────────────────────── */
+.final-cta{
+  background:var(--bg2);text-align:center;padding:100px 5%;
+  position:relative;overflow:hidden;
+}
+.final-cta::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(45,142,255,0.1) 0%,transparent 70%);
+}
+.final-cta .section-title{position:relative}
+.final-cta .section-sub{margin:16px auto 40px;position:relative}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+footer{
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:32px 5%;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.footer-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem;color:var(--text-bright)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:.8rem;color:var(--text-dim);transition:color .2s}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:.8rem;color:var(--text-dim)}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media(max-width:900px){
+  .about-grid{grid-template-columns:1fr}
+  .about-visual{order:-1}
+  .preview-content{grid-template-columns:1fr}
+  .preview-sidebar{display:none}
+  .preview-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .preview-cards{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+  footer{flex-direction:column;text-align:center}
+  .footer-links{flex-wrap:wrap;justify-content:center}
+  .steps::before{left:24px}
+  .step-num{width:48px;height:48px;font-size:.875rem}
+}
+.mobile-nav.open{display:flex}
+</style>
+</head>
 <body>
 
-  <div class="app">
+<!-- ── Navigation ───────────────────────────────────────────── -->
+<nav class="nav" id="mainNav">
+  <a href="/" class="nav-logo">
+    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+  </a>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#how">How It Works</a>
+    <a href="#trust">Security</a>
+    <a href="auth.html" class="btn btn-ghost">Login</a>
+    <a href="auth.html?view=register" class="btn btn-primary">Create Account</a>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="#about" onclick="toggleMobileNav()">About</a>
+  <a href="#features" onclick="toggleMobileNav()">Features</a>
+  <a href="#how" onclick="toggleMobileNav()">How It Works</a>
+  <a href="#trust" onclick="toggleMobileNav()">Security</a>
+  <a href="auth.html" onclick="toggleMobileNav()">Login</a>
+  <a href="auth.html?view=register" class="btn btn-primary" onclick="toggleMobileNav()">Create Account →</a>
+</div>
 
-    <!-- SIDEBAR OVERLAY FOR MOBILE -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<section class="hero">
+  <!-- Subtle dot-grid background -->
+  <div class="dot-grid-bg" aria-hidden="true">
+    <svg id="dotGridSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="dotPat" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+          <circle cx="1.5" cy="1.5" r="1.5" fill="rgba(45,142,255,0.22)"/>
+        </pattern>
+        <radialGradient id="dotFadeGrad" cx="50%" cy="45%" r="58%">
+          <stop offset="0%" stop-color="white" stop-opacity="1"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="dotMask"><rect width="100%" height="100%" fill="url(#dotFadeGrad)"/></mask>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dotPat)" mask="url(#dotMask)"/>
+      <g stroke="rgba(45,142,255,0.1)" stroke-width="1" fill="none">
+        <path d="M 140 0 L 140 90 L 300 90"/>
+        <path d="M 300 90 L 300 200"/>
+        <path d="M 700 0 L 700 110 L 560 110"/>
+        <path d="M 0 360 L 120 360 L 120 440"/>
+        <circle cx="140" cy="90" r="3.5" fill="rgba(45,142,255,0.35)" stroke="none"/>
+        <circle cx="300" cy="90" r="3.5" fill="rgba(0,212,170,0.35)" stroke="none"/>
+        <circle cx="700" cy="110" r="3.5" fill="rgba(168,85,247,0.35)" stroke="none"/>
+        <circle cx="120" cy="360" r="3.5" fill="rgba(45,142,255,0.35)" stroke="none"/>
+      </g>
+    </svg>
+  </div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-glow3"></div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="brand-logo-full" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-          <img src="assets/logo.png" alt="DAYSTACK Logo" class="brand-logo-img"
-            style="height: 38px; width: auto; max-width: 180px; object-fit: contain; margin-bottom: 4px;">
-          <div class="brand-sub" id="brandRange"></div>
-        </div>
-        <button type="button" class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle Sidebar (Collapse / Expand)"
-          aria-label="Toggle Sidebar">◀</button>
+  <div class="hero-badge">✦ UNIVERSAL PRODUCTIVITY TRACKER</div>
+
+  <h1>Your day.<br><span class="grad">Your goals.</span><br><span style="background:linear-gradient(135deg,#a855f7,#2d8eff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Your progress.</span></h1>
+  <p class="hero-sub">
+    Your productivity tracker for everything you need. Plan your day, build better habits, track goals, stay organized, and understand your progress in one intelligent workspace.
+  </p>
+
+  <div class="hero-bullets">
+    <div class="hero-bullet"><span>✓</span> Plan your day</div>
+    <div class="hero-bullet"><span>✓</span> Build better habits</div>
+    <div class="hero-bullet"><span>✓</span> Track your goals</div>
+    <div class="hero-bullet"><span>✓</span> Stay organized</div>
+    <div class="hero-bullet"><span>✓</span> Understand your progress</div>
+  </div>
+
+  <div class="hero-ctas">
+    <a href="auth.html?view=register" class="btn btn-primary" style="padding:14px 32px;font-size:1rem;font-weight:700;">
+      ✨ Start Tracking — Free
+    </a>
+    <a href="auth.html" class="btn btn-ghost" style="padding:13px 24px;font-size:1rem;">
+      Sign In →
+    </a>
+  </div>
+
+  <!-- Scrolling module marquee -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <div class="marquee-pill"><span class="mpico">◈</span> Smart Dashboard</div>
+      <div class="marquee-pill"><span class="mpico">▤</span> Daily Planner</div>
+      <div class="marquee-pill"><span class="mpico">⬡</span> Habit Tracker</div>
+      <div class="marquee-pill"><span class="mpico">◎</span> Goals &amp; Milestones</div>
+      <div class="marquee-pill"><span class="mpico">⏱</span> Pomodoro Focus</div>
+      <div class="marquee-pill"><span class="mpico">▦</span> Calendar</div>
+      <div class="marquee-pill"><span class="mpico">♥</span> Fitness &amp; Health</div>
+      <div class="marquee-pill"><span class="mpico">¤</span> Finance &amp; Budgets</div>
+      <div class="marquee-pill"><span class="mpico">✎</span> Journal &amp; Reflection</div>
+      <div class="marquee-pill"><span class="mpico">▥</span> Notes &amp; Ideas</div>
+      <div class="marquee-pill"><span class="mpico">◧</span> Project Tracker</div>
+      <div class="marquee-pill"><span class="mpico">◭</span> Personal Analytics</div>
+      <!-- Duplicate for seamless loop -->
+      <div class="marquee-pill"><span class="mpico">◈</span> Smart Dashboard</div>
+      <div class="marquee-pill"><span class="mpico">▤</span> Daily Planner</div>
+      <div class="marquee-pill"><span class="mpico">⬡</span> Habit Tracker</div>
+      <div class="marquee-pill"><span class="mpico">◎</span> Goals &amp; Milestones</div>
+      <div class="marquee-pill"><span class="mpico">⏱</span> Pomodoro Focus</div>
+      <div class="marquee-pill"><span class="mpico">▦</span> Calendar</div>
+      <div class="marquee-pill"><span class="mpico">♥</span> Fitness &amp; Health</div>
+      <div class="marquee-pill"><span class="mpico">¤</span> Finance &amp; Budgets</div>
+      <div class="marquee-pill"><span class="mpico">✎</span> Journal &amp; Reflection</div>
+      <div class="marquee-pill"><span class="mpico">▥</span> Notes &amp; Ideas</div>
+      <div class="marquee-pill"><span class="mpico">◧</span> Project Tracker</div>
+      <div class="marquee-pill"><span class="mpico">◭</span> Personal Analytics</div>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">15+</div>
+      <div class="lbl">Productivity Modules</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">100%</div>
+      <div class="lbl">Customizable Routines</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">⚡</div>
+      <div class="lbl">Fast &amp; Offline Ready</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">🔒</div>
+      <div class="lbl">Private &amp; Secure</div>
+    </div>
+  </div>
+
+  <!-- App Preview -->
+  <div class="hero-preview">
+    <div class="hero-preview-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="preview-url">daystack.app/dashboard</div>
+    </div>
+    <div class="preview-content">
+      <div class="preview-sidebar">
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:8px 10px 4px;">Overview</div>
+        <div class="preview-nav-item active"><div class="dot2"></div> Dashboard</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Daily Planner</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Habits</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Pomodoro Focus</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Calendar</div>
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:8px 10px 4px;">Growth &amp; Mind</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Goals</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Projects</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Journal &amp; Notes</div>
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:8px 10px 4px;">Life &amp; Health</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Fitness &amp; Health</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Finance</div>
+        <div class="preview-nav-item"><div class="dot2"></div> Analytics</div>
       </div>
-
-      <nav class="nav" id="nav">
-        <div class="nav-group-label">Overview</div>
-        <button type="button" class="nav-item active" data-section="dashboard"><span class="ico">◈</span>Dashboard</button>
-        <button type="button" class="nav-item" data-section="planner"><span class="ico">▤</span>Daily Planner</button>
-        <button type="button" class="nav-item" data-section="habits"><span class="ico">⬡</span>Habits</button>
-        <button type="button" class="nav-item" data-section="pomodoro"><span class="ico">⏱</span>Pomodoro</button>
-        <button type="button" class="nav-item" data-section="calendar"><span class="ico">▦</span>Calendar</button>
-
-        <div class="nav-group-label">Growth</div>
-        <button type="button" class="nav-item" data-section="contests"><span class="ico">⚔</span>Contest Tracker</button>
-        <button type="button" class="nav-item" data-section="exams"><span class="ico">📝</span>Exams</button>
-        <button type="button" class="nav-item" data-section="college"><span class="ico">🏛</span>College Updates</button>
-        <button type="button" class="nav-item" data-section="study"><span class="ico">∑</span>Study &amp; Coding</button>
-        <button type="button" class="nav-item" data-section="projects"><span class="ico">◧</span>Projects</button>
-        <!-- Temporarily disabled for future update:
-      <button type="button" class="nav-item" data-section="reading"><span class="ico">▧</span>Reading</button>
-      -->
-
-        <div class="nav-group-label">Body &amp; Life</div>
-        <button type="button" class="nav-item" data-section="fitness"><span class="ico">♥</span>Fitness &amp; Health</button>
-        <button type="button" class="nav-item" data-section="finance"><span class="ico">¤</span>Finance</button>
-
-        <div class="nav-group-label">Mind</div>
-        <button type="button" class="nav-item" data-section="journal"><span class="ico">✎</span>Journal</button>
-        <button type="button" class="nav-item" data-section="mistakes"><span class="ico">⚠</span>Mistakes</button>
-        <button type="button" class="nav-item" data-section="goals"><span class="ico">◎</span>Goals</button>
-        <!-- Temporarily disabled for future update:
-      <button type="button" class="nav-item" data-section="notes"><span class="ico">▥</span>Notes</button>
-      -->
-
-        <div class="nav-group-label">System</div>
-        <button type="button" class="nav-item" data-section="profile"><span class="ico">👤</span>Profile</button>
-        <button type="button" class="nav-item" data-section="analytics"><span class="ico">◭</span>Analytics</button>
-        <button type="button" class="nav-item" data-section="badges"><span class="ico">🏆</span>Achievements</button>
-        <button type="button" class="nav-item" data-section="settings"><span class="ico">⚙</span>Settings</button>
-      </nav>
-
-      <div class="sidebar-footer" id="sidebarFooterProgress" role="button" tabindex="0"
-        title="Click to view Dashboard Overview">
-        <div class="ring-mini" id="sidebarRing">
-          <svg viewBox="0 0 46 46">
-            <defs>
-              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--accent)" />
-                <stop offset="100%" stop-color="var(--accent2)" />
-              </linearGradient>
-            </defs>
-            <circle class="ring-track" cx="23" cy="23" r="18" />
-            <circle class="ring-fill" id="sidebarRingFill" cx="23" cy="23" r="18" />
-          </svg>
-          <span id="sidebarRingLabel">0%</span>
+      <div class="preview-main">
+        <div class="preview-row">
+          <div class="preview-tag">Daily Progress: 85%</div>
+          <div class="preview-tag">Habit Streak: Active 🔥</div>
+          <div class="preview-tag">Tasks Organized</div>
         </div>
-        <div class="sidebar-footer-text">
-          <div id="sidebarDayLabel">Day 0 / 90</div>
-          <div class="dim">Journey Progress <span class="nav-hint-ico">↗</span></div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- MOBILE TOPBAR -->
-    <header class="topbar">
-      <button type="button" id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
-      <div class="flex gap-6 align-center">
-        <button type="button" id="mobileNotifBtn" class="icon-btn notif-action-btn relative" aria-label="Notifications" title="Notification Center (🔔)">
-          🔔<span class="notif-badge-pill" id="mobileNotifBadge" style="display:none;">0</span>
-        </button>
-        <button type="button" id="mobileTargetBtn" class="icon-btn target-action-btn" aria-label="Target" title="Target Schedule & Checkpoint">🎯</button>
-        <button type="button" id="globalSearchBtn" class="icon-btn" aria-label="Search" title="Search (press /)">🔍</button>
-        <button type="button" id="mobileQuickAddBtn" class="icon-btn btn-accent" aria-label="Quick Add"
-          title="Quick Add (press n)">+</button>
-      </div>
-
-    </header>
-
-    <!-- MAIN -->
-    <main class="main" id="main">
-      <div class="topline">
-        <div>
-          <h1 id="pageTitle">Dashboard</h1>
-          <p id="pageSub" class="dim">Welcome back.</p>
-        </div>
-        <div class="topline-actions flex align-center gap-10">
-          <button type="button" id="notifBellBtn" class="icon-btn notif-action-btn relative" title="Notification Center (🔔)" aria-label="Notifications">
-            🔔<span class="notif-badge-pill" id="notifBadge" style="display:none;">0</span>
-          </button>
-          <button type="button" id="targetBtn" class="btn btn-ghost target-action-btn" title="Target Schedule & Checkpoint">🎯 Target</button>
-          <div class="search-wrap">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input id="globalSearch" placeholder="Search everything… (press /)" autocomplete="off" />
-            <div class="search-dropdown" id="searchDropdown"></div>
+        <div class="preview-cards">
+          <div class="preview-card">
+            <div class="plabel">Habit Consistency</div>
+            <div class="pval">92%</div>
+            <div class="pbar"><div class="pbar-fill" style="width:92%"></div></div>
           </div>
-          <button type="button" class="btn btn-accent" id="quickAddBtn" title="Quick Add (press n)">+ Quick Add</button>
+          <div class="preview-card">
+            <div class="plabel">Daily Tasks</div>
+            <div class="pval">6 / 8</div>
+            <div class="pbar"><div class="pbar-fill" style="width:75%;background:linear-gradient(90deg,#00d4aa,#00b894)"></div></div>
+          </div>
+          <div class="preview-card">
+            <div class="plabel">Goals on Track</div>
+            <div class="pval">4 Active</div>
+            <div class="pbar"><div class="pbar-fill" style="width:80%;background:linear-gradient(90deg,#a855f7,#7c3aed)"></div></div>
+          </div>
+        </div>
+        <div class="preview-row" style="gap:8px;flex-wrap:wrap">
+          <div class="preview-tag">🎯 Goal: Q3 Sprint Milestone</div>
+          <div class="preview-tag">🔥 14-Day Consistency Streak</div>
+          <div class="preview-tag">⏱ 4 Focus Sprints Completed</div>
         </div>
       </div>
-
-      <div id="content"></div>
-    </main>
+    </div>
   </div>
+</section>
 
-  <!-- MODAL ROOT -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+<!-- ── About ────────────────────────────────────────────────── -->
+<section class="section about" id="about">
+  <div class="about-grid">
+    <div>
+      <div class="section-label">About DAYSTACK</div>
+      <h2 class="section-title">Built for people who want to stay organized and make progress.</h2>
+      <p class="section-sub">
+        DAYSTACK isn't just another scattered to-do list. It's a complete personal productivity system designed for students, professionals, creators, and anyone building better routines.
+      </p>
+      <div class="about-points">
+        <div class="about-point">
+          <div class="about-icon">🎯</div>
+          <div>
+            <h4>Organize Your Everyday Life</h4>
+            <p>Connect your daily tasks, long-term goals, routines, and priorities in one unified workspace without juggling multiple disconnected tools.</p>
+          </div>
+        </div>
+        <div class="about-point">
+          <div class="about-icon">⬡</div>
+          <div>
+            <h4>Build Consistency That Lasts</h4>
+            <p>Track habits, build streaks, celebrate milestones, and customize cycles that fit your personal workflow.</p>
+          </div>
+        </div>
+        <div class="about-point">
+          <div class="about-icon">📊</div>
+          <div>
+            <h4>Understand Your Real Growth</h4>
+            <p>Get clear personal analytics, focus summaries, health metrics, and reflection insights to keep your momentum strong.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual">
+      <div style="font-size:.75rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px">📊 Weekly Productivity Snapshot</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="metric-row">
+          <div class="metric-label">Habits Completed</div>
+          <div class="metric-bar"><div class="metric-fill blue" style="width:88%"></div></div>
+          <div class="metric-pct">88%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Daily Tasks Done</div>
+          <div class="metric-bar"><div class="metric-fill teal" style="width:85%"></div></div>
+          <div class="metric-pct">85%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Focus Sessions</div>
+          <div class="metric-bar"><div class="metric-fill purple" style="width:78%"></div></div>
+          <div class="metric-pct">78%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Goals Progress</div>
+          <div class="metric-bar"><div class="metric-fill orange" style="width:72%"></div></div>
+          <div class="metric-pct">72%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label">Finance &amp; Budgets</div>
+          <div class="metric-bar"><div class="metric-fill pink" style="width:92%"></div></div>
+          <div class="metric-pct">92%</div>
+        </div>
+      </div>
+      <div style="margin-top:24px;padding:14px;background:var(--bg4);border-radius:10px;font-size:.8rem;color:var(--text-dim)">
+        <span style="color:var(--accent2);font-weight:700">✓ Active Productivity Cycle</span> — Daily momentum on track
+      </div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-top:20px;margin-bottom:8px;">Progress Breakdown</div>
+      <div class="problem-stats">
+        <div class="prob-tier easy"><div class="pt-label">Habits</div><div class="pt-count">88%</div><div class="pt-total">Consistency</div></div>
+        <div class="prob-tier med"><div class="pt-label">Tasks</div><div class="pt-count">18</div><div class="pt-total">Completed</div></div>
+        <div class="prob-tier hard"><div class="pt-label">Goals</div><div class="pt-count">4</div><div class="pt-total">Active</div></div>
+      </div>
+    </div>
   </div>
+</section>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- ── Features ─────────────────────────────────────────────── -->
+<section class="section features" id="features">
+  <div class="section-header">
+    <div class="section-label">Features</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Everything you need. In one place.</h2>
+    <p class="section-sub">Thoughtfully integrated modules designed to organize your day and help you make steady progress.</p>
+  </div>
+  <div class="features-grid">
 
-  <script src="vendor/chart.umd.js" defer></script>
-  <script defer>
-    window.addEventListener('DOMContentLoaded', () => {
-      if (typeof Chart === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-        document.body.appendChild(script);
-      }
-    });
-  </script>
-  <script src="app.js?v=15"></script>
+    <div class="feat-card">
+      <div class="feat-icon">◈</div>
+      <h3>Smart Dashboard</h3>
+      <p>See your day, priorities, habits, goals, and progress in one place.</p>
+      <span class="feat-tag">Overview</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">▤</div>
+      <h3>Daily Planner</h3>
+      <p>Organize tasks, priorities, routines, and everything you need to get done.</p>
+      <span class="feat-tag">Productivity</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">⬡</div>
+      <h3>Habit Tracker</h3>
+      <p>Build consistent habits and track streaks and progress.</p>
+      <span class="feat-tag">Growth</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">◎</div>
+      <h3>Goals</h3>
+      <p>Turn long-term goals into measurable progress.</p>
+      <span class="feat-tag">Milestones</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">♥</div>
+      <h3>Fitness</h3>
+      <p>Track workouts, routines, health-related goals, and personal progress.</p>
+      <span class="feat-tag">Wellness</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">¤</div>
+      <h3>Finance</h3>
+      <p>Track spending, savings, budgets, and financial goals.</p>
+      <span class="feat-tag">Finance</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">✎</div>
+      <h3>Journal &amp; Notes</h3>
+      <p>Capture thoughts, reflections, ideas, and important information.</p>
+      <span class="feat-tag">Mind</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">▦</div>
+      <h3>Calendar</h3>
+      <p>Keep important dates, schedules, and events organized.</p>
+      <span class="feat-tag">Schedule</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">⏱</div>
+      <h3>Focus</h3>
+      <p>Use Pomodoro and focused work sessions to make time count.</p>
+      <span class="feat-tag">Focus</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">◭</div>
+      <h3>Analytics</h3>
+      <p>Understand your habits, productivity, goals, and progress through useful insights.</p>
+      <span class="feat-tag">Insights</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">◧</div>
+      <h3>Projects</h3>
+      <p>Manage multi-step projects, technical milestones, and personal initiatives.</p>
+      <span class="feat-tag">Execution</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon">🔔</div>
+      <h3>Routines &amp; Reminders</h3>
+      <p>Build repeating daily routines and smart reminders so nothing falls through the cracks.</p>
+      <span class="feat-tag">Routines</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── How It Works ─────────────────────────────────────────── -->
+<section class="section how" id="how">
+  <div class="section-header">
+    <div class="section-label">How It Works</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Up and running in 60 seconds.</h2>
+    <p class="section-sub">Simple setup designed to get you organized and focused immediately.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h3>Create Your Account</h3>
+        <p>Sign up with your name, email, and password. Your personal account keeps your data safe and private.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h3>Confirm Your Email</h3>
+        <p>Open the confirmation link sent to your registered email to activate your account and verify your identity.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h3>Personalize Your Workspace</h3>
+        <p>Choose your primary goals, select the modules that fit your life, and set up your habit routines.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <h3>Plan &amp; Track Daily</h3>
+        <p>Start each day with clear tasks, track your habit streaks, log focus sessions, and record notes.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">05</div>
+      <div class="step-body">
+        <h3>Review &amp; Improve</h3>
+        <p>Gain insights from your personal analytics and weekly summaries to make steady, compounding progress.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Trust & Security ─────────────────────────────────────── -->
+<section class="section trust" id="trust">
+  <div class="section-header">
+    <div class="section-label">Security &amp; Trust</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Your data stays yours.</h2>
+    <p class="section-sub">Built with privacy, security, and performance at its foundation.</p>
+  </div>
+  <div class="trust-grid">
+    <div class="trust-card">
+      <div class="trust-icon">🔐</div>
+      <h3>Secure Authentication</h3>
+      <p>Enterprise-grade authentication with secure email confirmation, encrypted credentials, and protected session tokens.</p>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">✉️</div>
+      <h3>Email Verification</h3>
+      <p>Every account is verified through a direct email confirmation link to prevent unauthorized registrations.</p>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🔒</div>
+      <h3>Isolated User Data</h3>
+      <p>Each user's data is stored in a private, isolated container. No user can ever access another user's personal information.</p>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🚦</div>
+      <h3>Rate Limiting &amp; Protection</h3>
+      <p>Built-in brute-force protection and rate-limited authentication endpoints safeguard your account.</p>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">⚡</div>
+      <h3>Fast &amp; Offline Ready</h3>
+      <p>Designed for fast load times and local responsiveness, so you can track habits and tasks anywhere.</p>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🛡️</div>
+      <h3>XSS &amp; Input Sanitization</h3>
+      <p>Comprehensive sanitization protects all notes, tasks, reflections, and inputs throughout the entire workspace.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Final CTA ─────────────────────────────────────────────── -->
+<section class="final-cta">
+  <div class="section-label">Get Started Today</div>
+  <h2 class="section-title">Ready to organize your day<br>and achieve your goals?</h2>
+  <p class="section-sub">Join DAYSTACK and build your ideal productivity workflow. Free. Powerful. Yours.</p>
+  <div class="cta-btns">
+    <a href="auth.html?view=register" class="btn btn-primary" style="padding:16px 32px;font-size:1.05rem">
+      🚀 Create Free Account
+    </a>
+    <a href="auth.html" class="btn btn-ghost" style="padding:15px 28px;font-size:1.05rem">
+      Sign In →
+    </a>
+  </div>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo">
+    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+  </div>
+  <div class="footer-links">
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#trust">Security</a>
+    <a href="auth.html">Login</a>
+    <a href="auth.html?view=register">Register</a>
+  </div>
+  <div class="footer-copy">© 2026 DAYSTACK. Your Progress. One Day at a Time.</div>
+</footer>
+
+<script>
+function toggleMobileNav() {
+  document.getElementById('mobileNav').classList.toggle('open');
+}
+// Close mobile nav on outside click
+document.addEventListener('click', e => {
+  const nav = document.getElementById('mobileNav');
+  const btn = document.getElementById('hamburger');
+  if (nav.classList.contains('open') && !nav.contains(e.target) && !btn.contains(e.target)) {
+    nav.classList.remove('open');
+  }
+});
+// Animate bars on scroll
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.metric-fill').forEach(el => {
+    const rect = el.closest('.metric-row').getBoundingClientRect();
+    if (rect.top < window.innerHeight - 50) {
+      el.style.width = el.style.width || '0%';
+    }
+  });
+});
+</script>
 </body>
-
 </html>

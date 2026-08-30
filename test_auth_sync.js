@@ -22,8 +22,8 @@ async function runTests() {
   try {
     // 1. Landing Page Test
     console.log('Test 1: Public Landing Page');
-    const landingRes = await fetch(`${BASE_URL}/landing`);
-    assert(landingRes.status === 200, 'GET /landing returns 200 OK');
+    const landingRes = await fetch(`${BASE_URL}/`);
+    assert(landingRes.status === 200, 'GET / returns 200 OK');
     const landingText = await landingRes.text();
     assert(landingText.includes('Orvyn') && landingText.includes('Command Centre'), 'Landing page contains branding and hero');
 

@@ -200,19 +200,19 @@ const server = http.createServer(async (req, res) => {
   const pathname = parsedUrl.pathname;
 
   // ── Page routes with auth guards ─────────────────────────────────
-  // Root → redirect based on session
+  // Root → landing for visitors, dashboard for authenticated users
   if (pathname === '/') {
     const user = await getAuthenticatedUser(req);
     if (user) { res.writeHead(302, { Location: '/app' }); return res.end(); }
-    res.writeHead(302, { Location: '/landing' }); return res.end();
-  }
-
-  // Landing page (public)
-  if (pathname === '/landing') {
-    const file = path.join(__dirname, 'landing.html');
-    if (!fs.existsSync(file)) { res.writeHead(302, { Location: '/app' }); return res.end(); }
+    const file = path.join(__dirname, 'index.html');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     return res.end(fs.readFileSync(file));
+  }
+
+  // Legacy landing URL → root
+  if (pathname === '/landing') {
+    res.writeHead(302, { Location: '/' });
+    return res.end();
   }
 
   // Auth page (login / register / OTP)
@@ -229,7 +229,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/app') {
     const user = await getAuthenticatedUser(req);
     if (!user) { res.writeHead(302, { Location: '/auth?redirect=app' }); return res.end(); }
-    const file = path.join(__dirname, 'index.html');
+    const file = path.join(__dirname, 'app.html');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     return res.end(fs.readFileSync(file));
   }
@@ -791,7 +791,7 @@ Keep it under 90 words. Do not use markdown backticks.`;
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
-      // SPA Fallback: serve index.html for unknown HTML paths
+      // SPA Fallback: serve landing page for unknown HTML paths
       filePath = path.join(process.cwd(), 'index.html');
     }
 

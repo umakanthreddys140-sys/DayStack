@@ -179,11 +179,11 @@ body{display:flex;flex-direction:column;min-height:100vh}
 
 <!-- ── Top nav ─────────────────────────────────────────────── -->
 <div class="auth-nav">
-  <a href="/landing" style="display:flex;align-items:center;gap:8px;color:var(--text-bright);font-weight:700;font-size:.95rem;">
+  <a href="/" style="display:flex;align-items:center;gap:8px;color:var(--text-bright);font-weight:700;font-size:.95rem;">
     <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
   </a>
   <div style="display:flex;gap:16px;align-items:center">
-    <a href="/landing">← Back to Home</a>
+    <a href="/">← Back to Home</a>
   </div>
 </div>
 
@@ -192,7 +192,7 @@ body{display:flex;flex-direction:column;min-height:100vh}
   <!-- ── Side panel ────────────────────────────────────────── -->
   <div class="side-panel">
     <div class="side-brand">
-      <a href="/landing">
+      <a href="/">
         <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
       </a>
     </div>
@@ -372,15 +372,22 @@ let pendingEmail = '';
 let resendCooldownInterval = null;
 let appConfig = null;
 
-/* ── Init ──────────────────────────────────────────────────────── */
-(async function init() {
-  const params = new URLSearchParams(location.search);
-  const view = params.get('view') || 'login';
-  showView(view === 'register' ? 'register' : 'login');
-
+async function loadAppConfig() {
   try {
     const res = await fetch('/api/config');
-    const config = await res.json();
+    if (res.ok) return await res.json();
+  } catch (e) {}
+  try {
+    const res = await fetch('config.json');
+    if (res.ok) return await res.json();
+  } catch (e) {}
+  return {};
+}
+
+/* ── Init ──────────────────────────────────────────────────────── */
+(async function init() {
+  try {
+    const config = await loadAppConfig();
     appConfig = config;
     if (config.supabaseUrl && config.supabaseAnonKey) {
       supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
@@ -393,11 +400,11 @@ let appConfig = null;
         }
       });
 
-      // Check if already logged in
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         document.cookie = "sb-access-token=" + session.access_token + "; path=/; max-age=86400";
-        window.location.href = '/app';
+        window.location.href = 'app.html';
+        return;
       }
     } else {
       showAlert('login-alert', 'error', 'Supabase credentials missing. Contact administrator.');
@@ -405,6 +412,10 @@ let appConfig = null;
   } catch (e) {
     console.error("Config fetch failed", e);
   }
+
+  const params = new URLSearchParams(location.search);
+  const view = params.get('view') || 'login';
+  showView(view === 'register' ? 'register' : 'login');
 })();
 
 /* ── View switching ───────────────────────────────────────────── */
@@ -478,7 +489,7 @@ async function googleLogin() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: (appConfig?.appUrl || window.location.origin) + '/app'
+      redirectTo: (appConfig?.appUrl || window.location.origin) + '/app.html'
     }
   });
 
@@ -511,7 +522,7 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
       password: password,
       options: {
         data: { name, phone },
-        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth'
+        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth.html'
       }
     });
 
@@ -524,7 +535,7 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
 
     if (data.session) {
       document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=86400";
-      window.location.href = '/app';
+      window.location.href = 'app.html';
     } else {
       pendingEmail = email;
       const displayEl = document.getElementById('confirm-email-display');
@@ -584,7 +595,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     if (data.session) {
       document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=86400";
     }
-    window.location.href = '/app';
+    window.location.href = 'app.html';
   } catch (err) {
     showAlert('login-alert','error','Network error. Please try again.');
   } finally {
@@ -608,7 +619,7 @@ async function resendConfirmationEmail() {
       type: 'signup',
       email: pendingEmail,
       options: {
-        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth'
+        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth.html'
       }
     });
 

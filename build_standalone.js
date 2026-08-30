@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const baseDir = __dirname;
-const indexHtml = fs.readFileSync(path.join(baseDir, 'index.html'), 'utf8');
+const indexHtml = fs.readFileSync(path.join(baseDir, 'app.html'), 'utf8');
 const stylesCss = fs.readFileSync(path.join(baseDir, 'styles.css'), 'utf8');
 const chartJs = fs.readFileSync(path.join(baseDir, 'vendor', 'chart.umd.js'), 'utf8');
 const appJs = fs.readFileSync(path.join(baseDir, 'app.js'), 'utf8');

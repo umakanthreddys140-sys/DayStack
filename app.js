@@ -18779,8 +18779,14 @@ function openAccountModal(){
           navigate('admin');
         });
         modal.querySelector('#mAuthLogout')?.addEventListener('click', async () => {
+          try {
+            if (window.__daystackSupabase) {
+              await window.__daystackSupabase.auth.signOut();
+            }
+          } catch(e) {}
           try { await fetch('/api/auth/logout', { method: 'POST' }); } catch(e){}
-          window.location.href = '/landing';
+          document.cookie = 'sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          window.location.href = '/';
         });
         modal.querySelector('#mSave')?.addEventListener('click', () => {
           STORE.user.name = modal.querySelector('#accName').value.trim() || 'Student User';

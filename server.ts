@@ -56,6 +56,7 @@ export interface CycleState {
   started_by: string;
   lock_until: string | null;
   completed_at: string | null;
+  duration_days?: number;
   reset_allowed: boolean;
   reset_reason: string | null;
   reset_requested_at: string | null;
@@ -169,6 +170,16 @@ function addDaysStr(dateStr: string, days: number): string {
     return d.toISOString().slice(0, 10);
   } catch {
     return dateStr;
+  }
+}
+
+function diffDaysStr(d1: string, d2: string): number {
+  try {
+    const t1 = new Date(d1 + 'T00:00:00Z').getTime();
+    const t2 = new Date(d2 + 'T00:00:00Z').getTime();
+    return Math.round((t2 - t1) / (1000 * 60 * 60 * 24));
+  } catch {
+    return 0;
   }
 }
 

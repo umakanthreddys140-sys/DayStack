@@ -6,6 +6,8 @@
 <title>DAYSTACK — Sign In / Create Account</title>
 <meta name="description" content="Sign in or create your free DAYSTACK account — your productivity tracker for everything you need.">
 <meta name="theme-color" content="#091120">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +44,8 @@ body{display:flex;flex-direction:column;min-height:100vh}
   pointer-events:none;
 }
 .side-brand{margin-bottom:48px}
-.side-brand a{display:flex;align-items:center;gap:10px;color:var(--text-bright);font-size:1.1rem;font-weight:700;text-decoration:none}
+.side-brand a{display:flex;align-items:center;gap:10px;color:var(--text-bright);font-size:1.2rem;font-weight:700;text-decoration:none}
+.brand-text{font-family:var(--font);font-size:1.15rem;font-weight:700;letter-spacing:-.02em;color:var(--text-bright);line-height:1}
 .side-content h2{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;color:var(--text-bright);line-height:1.2;letter-spacing:-.02em;margin-bottom:16px}
 .side-content h2 .grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .side-content p{color:var(--text-dim);line-height:1.7;font-size:.95rem;max-width:380px}
@@ -179,11 +182,12 @@ body{display:flex;flex-direction:column;min-height:100vh}
 
 <!-- ── Top nav ─────────────────────────────────────────────── -->
 <div class="auth-nav">
-  <a href="/" style="display:flex;align-items:center;gap:8px;color:var(--text-bright);font-weight:700;font-size:.95rem;">
-    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+  <a href="index.html" style="display:flex; align-items:center; gap:8px; text-decoration:none;" aria-label="DAYSTACK Home">
+    <img src="assets/logo.png" alt="DAYSTACK" class="brand-logo-img" style="height: 38px; width: auto; object-fit: contain; display: block;">
+    <span style="font-family:var(--font-display); font-size:26px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
   </a>
   <div style="display:flex;gap:16px;align-items:center">
-    <a href="/">← Back to Home</a>
+    <a href="index.html">← Back to Home</a>
   </div>
 </div>
 
@@ -192,8 +196,9 @@ body{display:flex;flex-direction:column;min-height:100vh}
   <!-- ── Side panel ────────────────────────────────────────── -->
   <div class="side-panel">
     <div class="side-brand">
-      <a href="/">
-        <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+      <a href="index.html" style="display:inline-flex; align-items:center; gap:10px; text-decoration:none;" aria-label="DAYSTACK Home">
+        <img src="assets/logo.png" alt="DAYSTACK" class="brand-logo-img" style="height: 42px; width: auto; object-fit: contain; display: block;">
+        <span style="font-family:var(--font-display); font-size:30px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
       </a>
     </div>
     <div class="side-content">
@@ -277,7 +282,11 @@ body{display:flex;flex-direction:column;min-height:100vh}
         </button>
       </form>
 
-      <p style="font-size:.75rem;color:var(--text-dim);text-align:center;margin-top:16px;line-height:1.5">
+      <p style="font-size:.825rem;color:var(--text-dim);text-align:center;margin-top:14px;line-height:1.5">
+        Facing a problem? <a href="mailto:umakanthreddyannem2007@gmail.com?subject=DAYSTACK%20Account%20Registration%20Help" style="color:var(--accent);text-decoration:underline;font-weight:600;">Contact the admin</a>
+      </p>
+
+      <p style="font-size:.75rem;color:var(--text-dim);text-align:center;margin-top:12px;line-height:1.5">
         By creating an account you agree to DAYSTACK terms. Your data is private, secure, and isolated to your account.
       </p>
     </div>
@@ -317,19 +326,29 @@ body{display:flex;flex-direction:column;min-height:100vh}
           Sign In →
         </button>
       </form>
+
+      <p style="font-size:.825rem;color:var(--text-dim);text-align:center;margin-top:16px;line-height:1.5">
+        Facing a problem? <a href="mailto:umakanthreddyannem2007@gmail.com?subject=DAYSTACK%20Sign%20In%20Help" style="color:var(--accent);text-decoration:underline;font-weight:600;">Contact the admin</a>
+      </p>
     </div>
 
     <!-- EMAIL CONFIRMATION VIEW -->
     <div class="form-card hidden" id="view-confirm">
       <div class="form-header" style="text-align:center;">
         <div style="font-size:2.4rem;margin-bottom:12px;">✉️</div>
-        <h1>Please confirm your email</h1>
+        <h1>Please verify your email</h1>
         <p style="margin-top:6px;">
-          We've sent a confirmation link to <strong id="confirm-email-display" style="color:var(--text-bright);">your email</strong>. Please open that email and confirm your account to continue.
+          We've sent a confirmation link to <strong id="confirm-email-display" style="color:var(--text-bright);">your email</strong>. Please check your inbox and click the confirmation link before logging in.
         </p>
       </div>
 
       <div class="alert hidden" id="confirm-alert"></div>
+
+      <!-- Credential reminder -->
+      <div class="alert alert-info" id="confirm-reminder" style="margin-bottom:16px;">
+        <span>💡</span>
+        <span><strong>Reminder:</strong> Please remember the email and password you just entered so you can sign in easily once verified.</span>
+      </div>
 
       <div class="confirm-box">
         <div class="confirm-step">
@@ -356,7 +375,11 @@ body{display:flex;flex-direction:column;min-height:100vh}
 
       <span id="resend-cooldown" style="display:block;text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:10px;"></span>
 
-      <p style="text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:20px;">
+      <p style="font-size:.825rem;color:var(--text-dim);text-align:center;margin-top:16px;">
+        Facing a problem? <a href="mailto:umakanthreddyannem2007@gmail.com?subject=DAYSTACK%20Email%20Verification%20Help" style="color:var(--accent);text-decoration:underline;font-weight:600;">Contact the admin</a>
+      </p>
+
+      <p style="text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:16px;">
         <a onclick="showView('register')" style="color:var(--accent);cursor:pointer;">← Register with a different email</a>
       </p>
     </div>
@@ -482,6 +505,32 @@ function checkStrength(val) {
   label.style.color = lvl.bg;
 }
 
+/* ── Human-friendly Auth Error Mapper ────────────────────────── */
+function getHumanAuthError(error, context = 'login') {
+  if (!error) return 'An unexpected error occurred. Please try again.';
+  const msg = (error.message || '').toLowerCase();
+  
+  if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials') || msg.includes('invalid email or password')) {
+    return 'Please check the email and password you entered';
+  }
+  if (msg.includes('user already registered') || msg.includes('user_already_exists') || msg.includes('already registered')) {
+    return 'An account with this email already exists. Please sign in instead.';
+  }
+  if (msg.includes('password should be at least') || msg.includes('password is too short')) {
+    return 'Password must be at least 8 characters long.';
+  }
+  if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+    return 'Too many attempts. Please wait a few minutes before trying again.';
+  }
+  if (msg.includes('signup requires a valid password')) {
+    return 'Please enter a valid password (at least 8 characters).';
+  }
+  if (msg.includes('unable to validate email') || msg.includes('invalid email')) {
+    return 'Please enter a valid email address.';
+  }
+  return error.message || 'Authentication failed. Please try again.';
+}
+
 /* ── Google Login (OAuth) ─────────────────────────────────────── */
 async function googleLogin() {
   if (!supabaseClient) return showAlert('login-alert', 'error', 'System not connected to Supabase.');
@@ -494,7 +543,7 @@ async function googleLogin() {
   });
 
   if (error) {
-    showAlert('login-alert', 'error', error.message);
+    showAlert('login-alert', 'error', getHumanAuthError(error, 'oauth'));
   }
 }
 
@@ -527,10 +576,7 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
     });
 
     if (error) {
-      if (error.message.toLowerCase().includes('rate limit')) {
-        return showAlert('reg-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
-      }
-      return showAlert('reg-alert', 'error', error.message);
+      return showAlert('reg-alert', 'error', getHumanAuthError(error, 'register'));
     }
 
     if (data.session) {
@@ -544,13 +590,9 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
       if (loginInp) loginInp.value = email;
 
       showView('confirm');
-      // The requirement asked for specific text:
-      // "We've sent a confirmation email to your registered email address. Open the email and confirm your account to continue."
-      // "After confirming your email, return to DAYSTACK and sign in using your registered credentials."
-      // We already have this structure in the HTML.
     }
   } catch (err) {
-    showAlert('reg-alert','error','Network error. Please try again.');
+    showAlert('reg-alert','error','Unable to connect. Please check your internet connection and try again.');
   } finally {
     setLoading('reg-btn', false);
   }
@@ -575,29 +617,26 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
       password: password
     });
 
-      if (error) {
-        const msg = error.message || '';
-        if (msg.toLowerCase().includes('rate limit')) {
-          return showAlert('login-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
-        }
-        if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('email_not_confirmed')) {
-          pendingEmail = identifier;
-          const displayEl = document.getElementById('confirm-email-display');
-          if (displayEl) displayEl.textContent = identifier;
-          showView('confirm');
-          showAlert('confirm-alert', 'warn', 'Your email has not been confirmed yet. Please check your inbox for the confirmation link, or click Resend below.');
-          startResendCooldown(60);
-          return;
-        }
-        return showAlert('login-alert', 'error', error.message);
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('email not confirmed') || msg.includes('email_not_confirmed')) {
+        pendingEmail = identifier;
+        const displayEl = document.getElementById('confirm-email-display');
+        if (displayEl) displayEl.textContent = identifier;
+        showView('confirm');
+        showAlert('confirm-alert', 'warn', 'Please verify your email before logging in. We\'ve sent a confirmation link to your inbox.');
+        startResendCooldown(60);
+        return;
       }
+      return showAlert('login-alert', 'error', getHumanAuthError(error, 'login'));
+    }
     
     if (data.session) {
       document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=86400";
     }
     window.location.href = 'app.html';
   } catch (err) {
-    showAlert('login-alert','error','Network error. Please try again.');
+    showAlert('login-alert','error','Unable to connect. Please check your internet connection and try again.');
   } finally {
     setLoading('login-btn', false);
   }
@@ -624,16 +663,13 @@ async function resendConfirmationEmail() {
     });
 
     if (error) {
-      if (error.message.toLowerCase().includes('rate limit')) {
-        return showAlert('confirm-alert', 'error', 'Email rate limit exceeded. Please wait a few minutes before trying again. (If you are the developer, configure a custom SMTP in Supabase or temporarily disable email confirmations for local testing).');
-      }
-      return showAlert('confirm-alert', 'error', error.message);
+      return showAlert('confirm-alert', 'error', getHumanAuthError(error, 'resend'));
     }
 
     showAlert('confirm-alert', 'success', 'Confirmation email resent! Please check your inbox and spam folder.');
     startResendCooldown(60);
   } catch (err) {
-    showAlert('confirm-alert', 'error', 'Network error. Please try again.');
+    showAlert('confirm-alert', 'error','Unable to connect. Please check your internet connection and try again.');
   } finally {
     setLoading('resendConfirmBtn', false);
   }

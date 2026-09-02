@@ -1686,26 +1686,32 @@ function isSectionPinned(key){
   return false;
 }
 
-function isSectionExpanded(key, defaultExpanded = false){
+function isSectionExpanded(key, defaultExpanded = true){
   if(isSectionPinned(key)) return true;
-  if(EXPANDED_SECTIONS[key] === undefined){
-    if(STORE && STORE.expandedSections && STORE.expandedSections[key] !== undefined){
-      return !!STORE.expandedSections[key];
-    }
-    return defaultExpanded;
+  if(EXPANDED_SECTIONS[key] !== undefined) return !!EXPANDED_SECTIONS[key];
+  const baseKey = key.replace(/_\d{4}-\d{2}-\d{2}$/, '');
+  if(baseKey !== key && EXPANDED_SECTIONS[baseKey] !== undefined) return !!EXPANDED_SECTIONS[baseKey];
+  if(STORE && STORE.expandedSections){
+    if(STORE.expandedSections[key] !== undefined) return !!STORE.expandedSections[key];
+    if(baseKey !== key && STORE.expandedSections[baseKey] !== undefined) return !!STORE.expandedSections[baseKey];
   }
-  return !!EXPANDED_SECTIONS[key];
+  return Boolean(defaultExpanded);
 }
 
-function toggleSectionExpanded(key){
-  if(isSectionPinned(key)) return;
-  const next = !isSectionExpanded(key);
+function toggleSectionExpanded(key, defaultExpanded = true){
+  if(isSectionPinned(key)) return true;
+  const current = isSectionExpanded(key, defaultExpanded);
+  const next = !current;
   EXPANDED_SECTIONS[key] = next;
+  const baseKey = key.replace(/_\d{4}-\d{2}-\d{2}$/, '');
+  if(baseKey !== key) EXPANDED_SECTIONS[baseKey] = next;
   if(STORE){
     if(!STORE.expandedSections) STORE.expandedSections = {};
     STORE.expandedSections[key] = next;
+    if(baseKey !== key) STORE.expandedSections[baseKey] = next;
     save();
   }
+  return next;
 }
 
 function toggleSectionPinned(key, pinnedVal){
@@ -1725,13 +1731,13 @@ function toggleSectionPinned(key, pinnedVal){
   save();
 }
 
-function renderCollapsibleSection({ key, title, icon = '📋', countLabel = '', defaultExpanded = false, contentHtml, actionBtnHtml = '' }){
+function renderCollapsibleSection({ key, title, icon = '📋', countLabel = '', defaultExpanded = true, contentHtml, actionBtnHtml = '' }){
   const pinned = isSectionPinned(key);
   const expanded = pinned || isSectionExpanded(key, defaultExpanded);
 
   return `
     <div class="card collapsible-card ${expanded ? 'is-expanded' : 'is-collapsed'} ${pinned ? 'is-pinned' : ''}" id="card_${key}">
-      <div class="collapsible-header flex between align-center gap-10" style="cursor:pointer; user-select:none; flex-wrap:wrap; padding:2px 0;" data-toggle-expand="${key}">
+      <div class="collapsible-header flex between align-center gap-10" style="cursor:pointer; user-select:none; flex-wrap:wrap; padding:2px 0;" data-toggle-expand="${key}" data-default-expanded="${defaultExpanded ? 'true' : 'false'}">
         <div class="collapsible-title-group flex align-center gap-10" style="flex:1; min-width:160px;">
           <span class="expand-chevron" style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:8px; background:${pinned ? 'var(--accent)' : 'var(--accent-dim)'}; color:${pinned ? '#ffffff' : 'var(--accent)'}; font-size:11px; transition:transform 0.25s ease; transform:${expanded ? 'rotate(90deg)' : 'rotate(0deg)'}; font-weight:700; flex-shrink:0;">▶</span>
           <div style="min-width:0; flex:1;">
@@ -4360,7 +4366,7 @@ function openMilestoneCheckpointModal(){
               <div class="flex between" style="font-size:12px; margin-bottom:4px;"><span class="dim">Lock Expires</span><span class="mono accent">${lockUntilDate}</span></div>
               <div class="flex between" style="font-size:12px;"><span class="dim">Your Score</span><span class="mono" style="color:${scoreAbove85 ? 'var(--accent)' : 'var(--danger)'}">${currentScore}% ${scoreAbove85 ? '✅' : '(Need ≥85% to unlock early)'}</span></div>
             </div>
-            ${scoreAbove85 ? `<div style="font-size:12px; padding:8px 12px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.25); border-radius:8px; color:#4ade80;">🎉 Your score is above 85% — Early unlock available! Contact the platform admin or wait until ${lockUntilDate}.</div>` : `<div style="font-size:12px; color:var(--text-dim); text-align:center; padding:6px 0;">💡 Keep your productivity score above 85% to qualify for early unlock.</div>`}
+            ${scoreAbove85 ? `<div style="font-size:12px; padding:8px 12px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.25); border-radius:8px; color:#4ade80;">🎉 Your score is above 85% — Early unlock available! <a href="mailto:umakanthreddyannem2007@gmail.com?subject=DAYSTACK%20Early%20Unlock%20Request" style="color:inherit; text-decoration:underline; font-weight:600;">Contact the platform admin</a> or wait until ${lockUntilDate}.</div>` : `<div style="font-size:12px; color:var(--text-dim); text-align:center; padding:6px 0;">💡 Keep your productivity score above 85% to qualify for early unlock.</div>`}
           </div>
           <div class="form-actions"><button class="btn btn-accent" onclick="document.getElementById('modalOverlay').click()">Got it</button></div>
         `, () => {});
@@ -5192,6 +5198,7 @@ function render(isSectionSwitch = false){
   try { updateSidebarRing(); } catch(_) {}
   try { updateTargetButtonUI(); } catch(_) {}
   try { renderOrUpdateFloatingPomoTimer(); } catch(_) {}
+  try { renderOrUpdateFloatingFeedbackBtn(); } catch(_) {}
 }
 
 function updateSidebarRing(){
@@ -5391,9 +5398,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if(key){
         const isPinned = isSectionPinned(key);
         if(!isPinned){
-          const next = !isSectionExpanded(key);
-          toggleSectionExpanded(key);
-          const cardEl = document.getElementById(`card_${key}`);
+          const defaultExp = toggleEl.dataset.defaultExpanded !== 'false';
+          const next = toggleSectionExpanded(key, defaultExp);
+          const cardEl = toggleEl.closest('.collapsible-card') || document.getElementById(`card_${key}`);
           if(cardEl){
             cardEl.classList.toggle('is-expanded', next);
             cardEl.classList.toggle('is-collapsed', !next);
@@ -8022,44 +8029,44 @@ function renderPlanner(){
         <button class="btn btn-xs btn-ghost" data-fmt="quote" title="Quote (> )">“ Quote</button>
       </div>
 
-      <textarea id="plannerNotes" placeholder="Write quick thoughts, daily journal, code snippets, or notes for ${plannerDate}… (Auto-saves continuously)" style="min-height:140px; line-height:1.6; font-family:inherit; font-size:13.5px; width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--text);">${escapeHtml(plan.notes||'')}</textarea>
+      <textarea id="plannerNotes" placeholder="Write quick thoughts, daily journal, code snippets, or notes for ${plannerDate}… (Auto-saves continuously)" style="min-height:280px; line-height:1.7; font-family:inherit; font-size:14.5px; width:100%; border-radius:12px; padding:14px 16px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); box-sizing:border-box;">${escapeHtml(plan.notes||'')}</textarea>
       
-      <div id="plannerNotesPreview" class="markdown-preview-box" style="display:none; min-height:140px; padding:12px; background:var(--bg-2); border:1px solid var(--border); border-radius:9px; font-size:13.5px; line-height:1.6; white-space:pre-wrap;"></div>
+      <div id="plannerNotesPreview" class="markdown-preview-box" style="display:none; min-height:280px; padding:16px; background:var(--bg-2); border:1px solid var(--border); border-radius:12px; font-size:14.5px; line-height:1.7; white-space:pre-wrap; box-sizing:border-box;"></div>
     </div>
 
     <!-- TAB 2: GUIDED EVENING REFLECTION -->
     <div id="notesPanelGuided" style="display:none;">
-      <div class="form-grid" style="gap:12px;">
+      <div class="form-grid" style="gap:14px;">
         <div class="form-row">
-          <label style="display:flex; justify-content:space-between; align-items:center;">
-            <span>🏆 3 Top Wins Today</span>
-            <span class="dim" style="font-size:10.5px; text-transform:none;">What went well?</span>
+          <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:700; font-size:13px;">🏆 3 Top Wins Today</span>
+            <span class="dim" style="font-size:11px; text-transform:none;">What went well?</span>
           </label>
-          <textarea id="reflWins" placeholder="1. Completed DSA practice&#10;2. Finished project milestone&#10;3. Kept 8 glasses water streak..." style="min-height:75px; width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--text);">${escapeHtml(plan.reflection?.wins || '')}</textarea>
+          <textarea id="reflWins" placeholder="1. Completed DSA practice&#10;2. Finished project milestone&#10;3. Kept 8 glasses water streak..." style="min-height:120px; line-height:1.6; font-size:14px; width:100%; border-radius:10px; padding:12px 14px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); box-sizing:border-box;">${escapeHtml(plan.reflection?.wins || '')}</textarea>
         </div>
 
         <div class="form-row">
-          <label style="display:flex; justify-content:space-between; align-items:center;">
-            <span>💡 Key Learnings &amp; Insights</span>
-            <span class="dim" style="font-size:10.5px; text-transform:none;">What did you learn?</span>
+          <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:700; font-size:13px;">💡 Key Learnings &amp; Insights</span>
+            <span class="dim" style="font-size:11px; text-transform:none;">What did you learn?</span>
           </label>
-          <textarea id="reflLearned" placeholder="Mastered binary search lower_bound pattern and revised React hooks..." style="min-height:75px; width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--text);">${escapeHtml(plan.reflection?.learned || '')}</textarea>
+          <textarea id="reflLearned" placeholder="Mastered binary search lower_bound pattern and revised React hooks..." style="min-height:120px; line-height:1.6; font-size:14px; width:100%; border-radius:10px; padding:12px 14px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); box-sizing:border-box;">${escapeHtml(plan.reflection?.learned || '')}</textarea>
         </div>
 
         <div class="form-row">
-          <label style="display:flex; justify-content:space-between; align-items:center;">
-            <span>🚀 Improvements for Tomorrow</span>
-            <span class="dim" style="font-size:10.5px; text-transform:none;">What to optimize?</span>
+          <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:700; font-size:13px;">🚀 Improvements for Tomorrow</span>
+            <span class="dim" style="font-size:11px; text-transform:none;">What to optimize?</span>
           </label>
-          <textarea id="reflImprove" placeholder="Start morning workout 10 minutes earlier and minimize phone notifications during focus blocks..." style="min-height:75px; width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--text);">${escapeHtml(plan.reflection?.improve || '')}</textarea>
+          <textarea id="reflImprove" placeholder="Start morning workout 10 minutes earlier and minimize phone notifications during focus blocks..." style="min-height:120px; line-height:1.6; font-size:14px; width:100%; border-radius:10px; padding:12px 14px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); box-sizing:border-box;">${escapeHtml(plan.reflection?.improve || '')}</textarea>
         </div>
 
         <div class="form-row">
-          <label style="display:flex; justify-content:space-between; align-items:center;">
-            <span>🙏 Daily Gratitude</span>
-            <span class="dim" style="font-size:10.5px; text-transform:none;">Grateful for...</span>
+          <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:700; font-size:13px;">🙏 Daily Gratitude</span>
+            <span class="dim" style="font-size:11px; text-transform:none;">Grateful for...</span>
           </label>
-          <textarea id="reflGratitude" placeholder="Grateful for clean health, supportive family, and productive study sessions..." style="min-height:75px; width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--text);">${escapeHtml(plan.reflection?.gratitude || '')}</textarea>
+          <textarea id="reflGratitude" placeholder="Grateful for clean health, supportive family, and productive study sessions..." style="min-height:120px; line-height:1.6; font-size:14px; width:100%; border-radius:10px; padding:12px 14px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); box-sizing:border-box;">${escapeHtml(plan.reflection?.gratitude || '')}</textarea>
         </div>
       </div>
     </div>
@@ -8800,6 +8807,17 @@ function getCalDayData(dateStr) {
   const finances = isModuleEnabled('finance') ? ((STORE.finance || []).filter(f => f.date === dateStr)) : [];
   const goals = isModuleEnabled('goals') ? ((STORE.goals || []).filter(g => g.deadline === dateStr)) : [];
   
+  // Calculate Task / Target Completion Percentage
+  const tasksTotal = (plan.tasks || []).length + (plan.checklist || []).length;
+  const tasksDone = (plan.tasks || []).filter(t => t.done).length + (plan.checklist || []).filter(c => c.done).length;
+  const totalPlanned = tasksTotal + habitCount;
+  const completedPlanned = tasksDone + habitsDone;
+  
+  const completionPct = totalPlanned > 0 ? Math.round((completedPlanned / totalPlanned) * 100) : 0;
+  const isFuture = dateStr > todayStr();
+  const statusColor = isFuture ? '#38bdf8' : (completionPct >= 85 ? '#22c55e' : '#ef4444');
+  const statusLabel = isFuture ? 'Upcoming Day' : (completionPct >= 85 ? `High Execution (${completionPct}% completed)` : `Incomplete (${completionPct}% completed)`);
+
   // Custom Exams
   let exams = [];
   if(isModuleEnabled('exams')){
@@ -8816,7 +8834,7 @@ function getCalDayData(dateStr) {
     contests = STORE.contests.entries.filter(c => c.date === dateStr);
   }
   
-  return { plan, habitsDone, habitCount, journal, finances, goals, exams, contests, dateStr };
+  return { plan, habitsDone, habitCount, journal, finances, goals, exams, contests, dateStr, totalPlanned, completedPlanned, completionPct, isFuture, statusColor, statusLabel };
 }
 
 function renderCalDayCard(data, isFullDay = false) {
@@ -8828,10 +8846,18 @@ function renderCalDayCard(data, isFullDay = false) {
   let html = `
     <div class="card ${isToday ? 'border-accent' : ''}" style="display:flex; flex-direction:column; gap:8px; height:100%; min-height: 250px; background:var(--glass); border:1px solid ${isToday ? 'var(--accent)' : 'var(--border-soft)'};">
       <div class="flex flex-between items-center" style="border-bottom:1px solid var(--border-soft); padding-bottom:8px; margin-bottom:4px;">
-        <div style="font-size:15px; font-weight:700; color:${isToday ? 'var(--accent)' : 'var(--text-bright)'}">
-          ${dayName} ${dayNum} ${isToday ? '<span class="pill pill-accent" style="margin-left:6px; font-size:10px; padding:2px 6px;">TODAY</span>' : ''}
+        <div class="flex align-center gap-8">
+          <span class="cal-status-dot" style="width:10px; height:10px; border-radius:50%; background:${data.statusColor}; display:inline-block; box-shadow:0 0 8px ${data.statusColor}; flex-shrink:0;" title="${escapeHtml(data.statusLabel)}"></span>
+          <div style="font-size:15px; font-weight:700; color:${isToday ? 'var(--accent)' : 'var(--text-bright)'}">
+            ${dayName} ${dayNum} ${isToday ? '<span class="pill pill-accent" style="margin-left:6px; font-size:10px; padding:2px 6px;">TODAY</span>' : ''}
+          </div>
         </div>
-        ${data.plan.mood ? `<span style="font-size:18px;" title="Mood">${MOOD_EMOJI[(data.plan.mood||1)-1] || '✨'}</span>` : ''}
+        <div class="flex align-center gap-6">
+          <span class="pill ${data.isFuture ? 'pill-accent3' : (data.completionPct >= 85 ? 'pill-accent' : 'pill-dim')}" style="font-size:10.5px; font-weight:700;">
+            ${data.isFuture ? 'Upcoming' : `${data.completionPct}% Done`}
+          </span>
+          ${data.plan.mood ? `<span style="font-size:18px;" title="Mood">${MOOD_EMOJI[(data.plan.mood||1)-1] || '✨'}</span>` : ''}
+        </div>
       </div>
   `;
   
@@ -8925,7 +8951,10 @@ function renderCalMonthView(year, month) {
           <div class="cal-cell ${isToday ? 'today' : ''} ${!c.inMonth ? 'other-month' : ''}" data-cal-day="${c.date}"
             style="min-height:85px; padding:8px; border-radius:8px; background:${c.inMonth ? 'var(--bg-2)' : 'rgba(255,255,255,0.015)'}; border:1px solid ${isToday ? 'var(--accent)' : 'var(--border-soft)'}; opacity:${c.inMonth ? 1 : 0.4}; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.15s ease;">
             <div class="flex between items-center">
-              <span class="cal-daynum" style="font-weight:700; font-size:13px; color:${isToday ? 'var(--accent)' : 'var(--text-bright)'};">${dayNum}</span>
+              <div class="flex align-center gap-6">
+                <span class="cal-status-dot" style="width:8px; height:8px; border-radius:50%; background:${data.statusColor}; display:inline-block; box-shadow:0 0 6px ${data.statusColor}; flex-shrink:0;" title="${escapeHtml(data.statusLabel)}"></span>
+                <span class="cal-daynum" style="font-weight:700; font-size:13px; color:${isToday ? 'var(--accent)' : 'var(--text-bright)'};">${dayNum}</span>
+              </div>
               ${isToday ? '<span class="pill pill-accent" style="font-size:8.5px; padding:1px 4px;">TODAY</span>' : ''}
             </div>
             <div class="cal-dots" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
@@ -9108,16 +9137,28 @@ function renderStudy(){
     <div class="section-head"><h2>Session History</h2></div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Subject</th><th>Topic</th><th>Hours</th><th>Problems</th><th></th></tr></thead>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Subject</th>
+            <th>Topic &amp; Session Notes</th>
+            <th>Hours</th>
+            <th>Problems</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
         ${sorted.length ? sorted.map(s => `
           <tr>
             <td class="mono">${s.date}</td>
-            <td><span class="pill pill-accent3">${s.subject}</span></td>
-            <td>${escapeHtml(s.topic||'—')}</td>
+            <td><span class="pill pill-accent3">${escapeHtml(s.subject)}</span></td>
+            <td>
+              <div style="font-weight:600; color:var(--text-bright);">${escapeHtml(s.topic||'General Study')}</div>
+              ${s.notes ? `<div class="dim" style="font-size:12px; margin-top:4px; line-height:1.5; color:var(--text-dim); background:var(--bg-2); padding:6px 10px; border-radius:6px; border-left:3px solid var(--accent); white-space:pre-wrap;">📝 ${escapeHtml(s.notes)}</div>` : ''}
+            </td>
             <td class="mono">${fmtHrs(s.hours)}</td>
             <td class="mono">${s.problems||0}</td>
-            <td><button class="btn btn-sm btn-ghost" data-del-session="${s.id}">✕</button></td>
+            <td><button class="btn btn-sm btn-ghost" data-del-session="${s.id}" title="Delete session">✕</button></td>
           </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="msg">No sessions logged yet.</div></div></td></tr>`}
         </tbody>
       </table>
@@ -9199,7 +9240,7 @@ function renderProjects(){
       title: 'Tracked Projects & Builds',
       icon: '🚀',
       countLabel: `${STORE.projects.length} projects`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: projectsContent
     })}
   `;
@@ -9514,7 +9555,7 @@ function renderFitness(){
       countLabel: fitnessSubTab === 'trackers' ? `${completedTrackers}/${totalTrackers} done`
             : fitnessSubTab === 'goals' ? `${goals.length} goals`
             : `Date: ${today}`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: fitnessSubTab === 'trackers' ? renderFitnessTrackersView(trackers)
             : fitnessSubTab === 'goals' ? renderFitnessGoalsView(goals)
             : fitnessSubTab === 'daily' ? renderFitnessDailyView(today, fLog, hLog)
@@ -10556,7 +10597,7 @@ function renderMistakes(){
       title: 'Logged Mistakes & Action Plans',
       icon: '🛡️',
       countLabel: `${sorted.length} records`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: mistakesContent
     })}
   `;
@@ -10708,7 +10749,7 @@ function renderGoals(){
       title: `${goalsTab.charAt(0).toUpperCase() + goalsTab.slice(1)} Goals &amp; Milestones`,
       icon: '🎯',
       countLabel: `${list.length} goals`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: goalsContent
     })}
   `;
@@ -10873,7 +10914,7 @@ function renderNotes(){
       title: 'Knowledge Base &amp; Saved Notes',
       icon: '📝',
       countLabel: `${sorted.length} notes`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: notesContent
     })}
   `;
@@ -12226,8 +12267,9 @@ function renderPomodoro(){
         </div>
 
         <div class="flex gap-8 justify-center wrap" style="margin-top:12px; width:100%;">
-          <button class="btn btn-accent ${pomodoroState.running ? 'btn-ghost' : ''}" id="pomoStartBtn" style="min-width:100px;">${pomodoroState.running ? 'Pause' : 'Start'}</button>
-          <button class="btn btn-ghost" id="pomoResetBtn">Reset</button>
+          <button class="btn ${pomodoroState.running ? 'btn-pause' : 'btn-accent'}" id="pomoStartBtn" style="min-width:110px;">${pomodoroState.running ? '⏸ Pause' : '▶ Start'}</button>
+          <button class="btn btn-ghost" id="pomoResetBtn">↺ Reset</button>
+          <button class="btn btn-ghost btn-sm" id="pomoToggleFsBtn" title="Toggle Fullscreen Mode (F)" style="font-size:11px;">⛶ Fullscreen (F)</button>
           <button class="btn btn-ghost btn-sm" id="pomoToggleFloatingBtn" title="Toggle Floating Timer Popup" style="font-size:11px;">
             ${(!pomodoroState.floatingDismissed && (pomodoroState.running || (remSec > 0 && remSec < targetTotalSec))) ? '📌 Floating: ON' : '📌 Pop-out Floating'}
           </button>
@@ -12701,7 +12743,8 @@ function renderOrUpdateFloatingPomoTimer(){
           <span class="floating-pomo-mode" id="floatingPomoModeLabel">${modeTitle}</span>
           <span class="pill ${pomodoroState.running ? 'pill-accent' : 'pill-dim'} floating-pomo-status-pill" id="floatingPomoStatusPill">${pomodoroState.running ? 'Running' : 'Paused'}</span>
         </div>
-        <div class="floating-pomo-actions">
+        <div class="floating-pomo-actions flex align-center gap-4">
+          <button type="button" class="btn btn-xs btn-ghost" id="floatingPomoFsBtn" title="Open Fullscreen View (F)" style="padding:2px 6px; font-size:11px;">⛶</button>
           <button type="button" class="floating-pomo-btn-close" id="floatingPomoCloseBtn" title="Hide floating timer (session continues in background)" aria-label="Hide floating timer">✕</button>
         </div>
       </div>
@@ -12713,12 +12756,18 @@ function renderOrUpdateFloatingPomoTimer(){
         <div class="floating-pomo-progress-fill" id="floatingPomoProgressFill" style="width: ${progressPct}%;"></div>
       </div>
       <div class="floating-pomo-footer">
-        <button type="button" class="btn btn-xs ${pomodoroState.running ? 'btn-ghost' : 'btn-accent'} floating-pomo-ctrl-btn" id="floatingPomoToggleBtn">
+        <button type="button" class="btn btn-xs ${pomodoroState.running ? 'btn-pause' : 'btn-accent'} floating-pomo-ctrl-btn" id="floatingPomoToggleBtn">
           <span id="floatingPomoToggleIcon">${pomodoroState.running ? '⏸' : '▶'}</span>
           <span id="floatingPomoToggleText">${pomodoroState.running ? 'Pause' : 'Resume'}</span>
         </button>
+        <button type="button" class="btn btn-xs btn-ghost" id="floatingPomoSkipBtn" title="Skip to Next Mode" style="font-size:11px; padding:4px 7px;">
+          ⏭
+        </button>
+        <button type="button" class="btn btn-xs btn-ghost" id="floatingPomoResetBtn" title="Reset Timer" style="font-size:11px; padding:4px 7px;">
+          ↺
+        </button>
         <button type="button" class="btn btn-xs btn-ghost floating-pomo-open-btn" id="floatingPomoOpenBtn" title="Open Full Pomodoro View">
-          ↗ Open Pomodoro
+          ↗
         </button>
       </div>
     `;
@@ -12730,6 +12779,21 @@ function renderOrUpdateFloatingPomoTimer(){
     floatingEl.querySelector('#floatingPomoToggleBtn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePomoTimer();
+    });
+
+    floatingEl.querySelector('#floatingPomoSkipBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      skipPomoSession();
+    });
+
+    floatingEl.querySelector('#floatingPomoResetBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetPomoTimer();
+    });
+
+    floatingEl.querySelector('#floatingPomoFsBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openPomodoroFullscreen();
     });
 
     floatingEl.querySelector('#floatingPomoOpenBtn')?.addEventListener('click', (e) => {
@@ -12769,7 +12833,7 @@ function renderOrUpdateFloatingPomoTimer(){
 
     const toggleBtn = floatingEl.querySelector('#floatingPomoToggleBtn');
     if(toggleBtn){
-      toggleBtn.className = `btn btn-xs ${pomodoroState.running ? 'btn-ghost' : 'btn-accent'} floating-pomo-ctrl-btn`;
+      toggleBtn.className = `btn btn-xs ${pomodoroState.running ? 'btn-pause' : 'btn-accent'} floating-pomo-ctrl-btn`;
     }
 
     const toggleIcon = floatingEl.querySelector('#floatingPomoToggleIcon');
@@ -12778,6 +12842,186 @@ function renderOrUpdateFloatingPomoTimer(){
     const toggleText = floatingEl.querySelector('#floatingPomoToggleText');
     if(toggleText) toggleText.textContent = pomodoroState.running ? 'Pause' : 'Resume';
   }
+}
+
+/* ── Floating Feedback Trigger & Guided Modal ────────────── */
+function renderOrUpdateFloatingFeedbackBtn(){
+  // Hide on fullscreen pomodoro
+  if(document.getElementById('pomoFullscreenOverlay')) {
+    const existing = document.getElementById('floatingFeedbackBtn');
+    if(existing) existing.style.display = 'none';
+    return;
+  }
+
+  let btn = document.getElementById('floatingFeedbackBtn');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'floatingFeedbackBtn';
+    btn.className = 'floating-feedback-btn';
+    btn.type = 'button';
+    btn.title = 'Share your thoughts, report issues, or suggest features for DAYSTACK';
+    btn.innerHTML = `<span>💬</span><span>Feedback</span>`;
+    btn.addEventListener('click', () => openFeedbackModal(SECTION_TITLES[currentSection]?.[0] || 'General / Other'));
+    document.body.appendChild(btn);
+  } else {
+    btn.style.display = 'inline-flex';
+  }
+}
+
+function openFeedbackModal(defaultSection = 'General / Other'){
+  // Remove any existing feedback modal
+  const old = document.getElementById('feedbackModalOverlay');
+  if(old) old.remove();
+
+  const sectionsList = [
+    'Dashboard', 'Daily Planner & Tasks', 'Habits & Matrix', 'Pomodoro Focus Timer',
+    'Goals & Milestones', 'Finance & Expenses', 'Journal & Mind', 'Calendar & Deadlines',
+    'Contest Tracker (CP)', 'Exams & Academic Prediction', 'Study & Coding Tracker',
+    'College Timetable & Updates', 'Analytics', 'Achievements & Badges', 'Settings', 'General / Other'
+  ];
+
+  let initialSec = defaultSection;
+  if(!sectionsList.includes(initialSec)){
+    const match = sectionsList.find(s => s.toLowerCase().includes(initialSec.toLowerCase()));
+    initialSec = match || 'General / Other';
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'feedbackModalOverlay';
+  overlay.className = 'feedback-modal-overlay';
+
+  overlay.innerHTML = `
+    <div class="feedback-modal-card" id="feedbackModalCard">
+      <!-- Header with Logo -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-soft); padding-bottom:12px;">
+        <div class="flex items-center gap-10">
+          <img src="assets/logo.png" alt="DAYSTACK" style="width:32px; height:32px; object-fit:contain; border-radius:6px;">
+          <span style="font-family:var(--font-display); font-size:20px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
+        </div>
+        <button type="button" class="btn btn-xs btn-ghost" id="closeFeedbackModalBtn" style="font-size:16px; border:none; padding:4px 8px; cursor:pointer;" title="Close">✕</button>
+      </div>
+
+      <div>
+        <h3 style="font-size:16px; font-weight:700; color:var(--text-bright); margin:0 0 4px 0;">Share Your Feedback</h3>
+        <p class="dim" style="font-size:12.5px; margin:0; line-height:1.5;">Your direct feedback helps shape upcoming DAYSTACK releases and improvements.</p>
+      </div>
+
+      <form id="feedbackForm" style="display:flex; flex-direction:column; gap:14px; margin:0;">
+        <!-- Section Selection -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            Which section is your feedback about?
+          </label>
+          <select id="fbSection" style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:10px; color:var(--text); font-family:var(--font); font-size:13.5px; outline:none;">
+            ${sectionsList.map(s => `<option value="${s}" ${s === initialSec ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Guided Q1: Smoothness Rating -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            How smooth is this section for your daily workflow?
+          </label>
+          <select id="fbSmoothness" style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:10px; color:var(--text); font-family:var(--font); font-size:13.5px; outline:none;">
+            <option value="🌟 Highly Seamless & Smooth">🌟 Highly Seamless &amp; Smooth</option>
+            <option value="👍 Good & Useful" selected>👍 Good &amp; Useful</option>
+            <option value="⚠️ Needs Improvement">⚠️ Needs Improvement</option>
+            <option value="❌ Confusing / Broken">❌ Confusing / Broken</option>
+          </select>
+        </div>
+
+        <!-- Guided Q2: What worked well? -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            What worked well?
+          </label>
+          <input type="text" id="fbWorkedWell" placeholder="e.g. Fast logging, clean calendar dots, focus sound..." style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:10px; color:var(--text); font-family:var(--font); font-size:13.5px; outline:none;">
+        </div>
+
+        <!-- Guided Q3: Difficulties / friction -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            What was difficult or could be better?
+          </label>
+          <input type="text" id="fbDifficulties" placeholder="e.g. Button was hard to find, needed more writing space..." style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:10px; color:var(--text); font-family:var(--font); font-size:13.5px; outline:none;">
+        </div>
+
+        <!-- Guided Q4: Free-text Review -->
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            Detailed Review, Idea, or Issue Description <span style="color:var(--accent);">*</span>
+          </label>
+          <textarea id="fbReviewText" rows="3" required placeholder="Write your full feedback, problem details, or suggestions here..." style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:10px; color:var(--text); font-family:var(--font); font-size:13.5px; outline:none; line-height:1.5; resize:vertical;"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; border-top:1px solid var(--border-soft); padding-top:14px;">
+          <button type="button" class="btn btn-ghost" id="cancelFeedbackBtn">Cancel</button>
+          <button type="submit" class="btn btn-accent" id="submitFeedbackBtn" style="display:inline-flex; align-items:center; gap:6px;">
+            <span>Submit Feedback →</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const handleDismiss = () => {
+    overlay.remove();
+    toast('ℹ️ No problem — you can give feedback anytime later from Settings.', 4500);
+  };
+
+  overlay.querySelector('#closeFeedbackModalBtn')?.addEventListener('click', handleDismiss);
+  overlay.querySelector('#cancelFeedbackBtn')?.addEventListener('click', handleDismiss);
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay) handleDismiss();
+  });
+
+  // Submit Handler
+  const form = overlay.querySelector('#feedbackForm');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const section = overlay.querySelector('#fbSection')?.value || 'General / Other';
+    const smoothness = overlay.querySelector('#fbSmoothness')?.value || 'Good';
+    const workedWell = overlay.querySelector('#fbWorkedWell')?.value || '';
+    const difficulties = overlay.querySelector('#fbDifficulties')?.value || '';
+    const reviewText = overlay.querySelector('#fbReviewText')?.value?.trim();
+
+    if(!reviewText){
+      toast('Please enter your feedback review details before submitting.');
+      return;
+    }
+
+    const submitBtn = overlay.querySelector('#submitFeedbackBtn');
+    if(submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section, smoothness, workedWell, difficulties, reviewText })
+      });
+      const data = await res.json();
+      if(data.success){
+        overlay.remove();
+        toast('🎉 Thank you for your feedback! It helps us continuously improve DAYSTACK.', 4500);
+      } else {
+        // Fallback local storage
+        if(!STORE.userFeedback) STORE.userFeedback = [];
+        STORE.userFeedback.push({ section, smoothness, workedWell, difficulties, reviewText, date: todayStr() });
+        save();
+        overlay.remove();
+        toast('🎉 Thank you for your feedback! It has been saved locally.', 4500);
+      }
+    } catch(err) {
+      if(!STORE.userFeedback) STORE.userFeedback = [];
+      STORE.userFeedback.push({ section, smoothness, workedWell, difficulties, reviewText, date: todayStr() });
+      save();
+      overlay.remove();
+      toast('🎉 Thank you for your feedback! It has been recorded.', 4500);
+    }
+  });
 }
 
 function savePomoState(){
@@ -12892,6 +13136,7 @@ function startPomoInterval(){
     }
 
     renderOrUpdateFloatingPomoTimer();
+    renderOrUpdateFullscreenPomo();
 
     if(pomodoroState.remaining <= 0){
       clearInterval(pomodoroState.intervalId);
@@ -12972,6 +13217,170 @@ function setPomoMode(mode, seconds){
   render();
 }
 
+let isPomodoroFullscreenOpen = false;
+
+function openPomodoroFullscreen(){
+  isPomodoroFullscreenOpen = true;
+  let overlay = document.getElementById('pomoFullscreenOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'pomoFullscreenOverlay';
+    overlay.className = 'pomo-fullscreen-overlay';
+    document.body.appendChild(overlay);
+  }
+  renderOrUpdateFullscreenPomo();
+  
+  try {
+    if(!document.fullscreenElement && document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  } catch(e){}
+}
+
+function closePomodoroFullscreen(){
+  isPomodoroFullscreenOpen = false;
+  const overlay = document.getElementById('pomoFullscreenOverlay');
+  if(overlay){
+    overlay.style.opacity = '0';
+    overlay.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      const el = document.getElementById('pomoFullscreenOverlay');
+      if(el) el.remove();
+    }, 200);
+  }
+  try {
+    if(document.fullscreenElement && document.exitFullscreen){
+      document.exitFullscreen().catch(()=>{});
+    }
+  } catch(e){}
+  
+  // Exiting fullscreen automatically summons the floating mini pomodoro popup
+  pomodoroState.floatingDismissed = false;
+  savePomoState();
+  renderOrUpdateFloatingPomoTimer();
+}
+
+function togglePomodoroFullscreen(){
+  if(isPomodoroFullscreenOpen || document.getElementById('pomoFullscreenOverlay')){
+    closePomodoroFullscreen();
+  } else {
+    openPomodoroFullscreen();
+  }
+}
+
+function renderOrUpdateFullscreenPomo(){
+  const overlay = document.getElementById('pomoFullscreenOverlay');
+  if(!overlay || !isPomodoroFullscreenOpen) return;
+
+  const cfg = (STORE && STORE.pomodoroConfig) || { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 };
+  const currentMode = pomodoroState.mode || 'focus';
+  const targetTotalSec = (currentMode === 'focus' ? cfg.focusMinutes : currentMode === 'shortBreak' ? cfg.shortBreakMinutes : cfg.longBreakMinutes) * 60;
+  const remSec = pomodoroState.remaining !== undefined ? pomodoroState.remaining : targetTotalSec;
+  const elapsedSec = targetTotalSec - remSec;
+  const progressRatio = targetTotalSec > 0 ? clamp(elapsedSec / targetTotalSec, 0, 1) : 0;
+  
+  const circumference = 879.64;
+  const strokeDashoffset = (circumference * (1 - progressRatio)).toFixed(2);
+  const modeTitle = currentMode === 'focus' ? 'FOCUS SESSION' : currentMode === 'shortBreak' ? 'SHORT BREAK' : 'LONG BREAK';
+  const modeIcon = currentMode === 'focus' ? '🍅' : currentMode === 'shortBreak' ? '☕' : '🌴';
+  const modePillClass = currentMode === 'focus' ? 'pill-accent' : currentMode === 'shortBreak' ? 'pill-accent2' : 'pill-accent3';
+  const associatedTask = pomodoroState.taskId ? getTaskOrCodingTitle(pomodoroState.taskId) : '';
+
+  overlay.innerHTML = `
+    <div class="pomo-fullscreen-header">
+      <span class="pill ${modePillClass} pomo-fullscreen-badge">${modeIcon} ${modeTitle}</span>
+      ${associatedTask ? `<span class="pomo-fullscreen-task">🎯 ${escapeHtml(associatedTask)}</span>` : ''}
+    </div>
+
+    <div class="pomo-fullscreen-ring-wrap">
+      <svg width="320" height="320" viewBox="0 0 320 320">
+        <circle cx="160" cy="160" r="140" fill="none" stroke="var(--border)" stroke-width="10" />
+        <circle id="pomoFsRingCircle" cx="160" cy="160" r="140" fill="none" stroke="var(--accent)" stroke-width="10"
+          stroke-linecap="round"
+          stroke-dasharray="${circumference}"
+          stroke-dashoffset="${strokeDashoffset}"
+          transform="rotate(-90 160 160)"
+          style="transition: stroke-dashoffset 0.3s ease;" />
+      </svg>
+      <div class="pomo-fullscreen-clock">
+        <div class="pomo-fullscreen-time" id="pomoFsDisplay">${pomoFmtTime(remSec)}</div>
+        <div class="pomo-fullscreen-status">${pomodoroState.running ? '⚡ In Session' : '⏸ Paused'}</div>
+      </div>
+    </div>
+
+    <div class="pomo-fullscreen-controls">
+      <button type="button" class="btn ${pomodoroState.running ? 'btn-pause' : 'btn-accent'}" id="pomoFsToggleBtn" style="padding:12px 28px; font-size:16px; border-radius:12px;">
+        ${pomodoroState.running ? '⏸ Pause' : '▶ Resume'}
+      </button>
+      <button type="button" class="btn btn-ghost" id="pomoFsSkipBtn" style="padding:12px 20px; font-size:14px; border-radius:12px;">
+        ⏭ Skip Mode
+      </button>
+      <button type="button" class="btn btn-ghost" id="pomoFsResetBtn" style="padding:12px 20px; font-size:14px; border-radius:12px;">
+        ↺ Reset
+      </button>
+      <button type="button" class="btn btn-ghost" id="pomoFsAmbientBtn" style="padding:12px 20px; font-size:14px; border-radius:12px;">
+        ${ambientPlaying ? '🔊 Ambient Sound' : '🔇 Play Audio'}
+      </button>
+    </div>
+
+    <button type="button" class="pomo-fullscreen-exit-btn" id="pomoExitFullscreenBtn">
+      ✕ Exit Fullscreen (Esc / F)
+    </button>
+  `;
+
+  // Bind Listeners
+  overlay.querySelector('#pomoFsToggleBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePomoTimer();
+  });
+
+  overlay.querySelector('#pomoFsSkipBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    skipPomoSession();
+  });
+
+  overlay.querySelector('#pomoFsResetBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetPomoTimer();
+  });
+
+  overlay.querySelector('#pomoFsAmbientBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if(ambientPlaying){
+      stopAmbientSound();
+    } else {
+      playAmbientSound('rain', ambientVolume || 0.5);
+    }
+    renderOrUpdateFullscreenPomo();
+  });
+
+  overlay.querySelector('#pomoExitFullscreenBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closePomodoroFullscreen();
+  });
+}
+
+function skipPomoSession(){
+  clearInterval(pomodoroState.intervalId);
+  pomodoroState.intervalId = null;
+  pomodoroState.running = false;
+  pomodoroState.targetEndTime = null;
+  const cfg = (STORE && STORE.pomodoroConfig) || { focusMinutes:25, shortBreakMinutes:5, longBreakMinutes:15, longBreakInterval:4 };
+  if(pomodoroState.mode === 'focus'){
+    pomodoroState.mode = 'shortBreak';
+    pomodoroState.remaining = (cfg.shortBreakMinutes || 5) * 60;
+  } else {
+    pomodoroState.mode = 'focus';
+    pomodoroState.remaining = (cfg.focusMinutes || 25) * 60;
+  }
+  savePomoState();
+  updatePomoDocTitle();
+  renderOrUpdateFloatingPomoTimer();
+  renderOrUpdateFullscreenPomo();
+  render();
+  toast(`⏭ Switched to ${pomodoroState.mode === 'focus' ? 'Focus Session' : 'Break'}`);
+}
+
 function togglePomoTimer(){
   const cfg = (STORE && STORE.pomodoroConfig) || { focusMinutes:25, shortBreakMinutes:5, longBreakMinutes:15 };
   if(pomodoroState.remaining === undefined){
@@ -12991,15 +13400,13 @@ function togglePomoTimer(){
     // Direct synchronous element update
     const mainStartBtn = document.getElementById('pomoStartBtn');
     if(mainStartBtn){
-      mainStartBtn.textContent = 'Start';
-      mainStartBtn.classList.remove('btn-ghost');
-      mainStartBtn.classList.add('btn-accent');
+      mainStartBtn.textContent = '▶ Start';
+      mainStartBtn.className = 'btn btn-accent';
     }
     const dashStartBtn = document.getElementById('dashPomoStartBtn');
     if(dashStartBtn){
       dashStartBtn.textContent = '▶ Start';
-      dashStartBtn.classList.remove('btn-ghost');
-      dashStartBtn.classList.add('btn-accent');
+      dashStartBtn.className = 'btn btn-accent';
     }
     const dashStatus = document.getElementById('dashPomoStatus');
     if(dashStatus){
@@ -13008,6 +13415,7 @@ function togglePomoTimer(){
     }
 
     renderOrUpdateFloatingPomoTimer();
+    renderOrUpdateFullscreenPomo();
     render();
   } else {
     // Start / Resume timer
@@ -13022,18 +13430,16 @@ function togglePomoTimer(){
     updatePomoDocTitle();
     startPomoInterval();
 
-    // Direct synchronous element update
+    // Direct synchronous element update with high contrast pause button
     const mainStartBtn = document.getElementById('pomoStartBtn');
     if(mainStartBtn){
-      mainStartBtn.textContent = 'Pause';
-      mainStartBtn.classList.remove('btn-accent');
-      mainStartBtn.classList.add('btn-ghost');
+      mainStartBtn.textContent = '⏸ Pause';
+      mainStartBtn.className = 'btn btn-pause';
     }
     const dashStartBtn = document.getElementById('dashPomoStartBtn');
     if(dashStartBtn){
       dashStartBtn.textContent = '⏸ Pause';
-      dashStartBtn.classList.remove('btn-accent');
-      dashStartBtn.classList.add('btn-ghost');
+      dashStartBtn.className = 'btn btn-pause';
     }
     const dashStatus = document.getElementById('dashPomoStatus');
     if(dashStatus){
@@ -13041,7 +13447,13 @@ function togglePomoTimer(){
       dashStatus.className = 'pill pill-accent';
     }
 
+    // When starting a focus session, automatically enter fullscreen
+    if(pomodoroState.mode === 'focus' && !isPomodoroFullscreenOpen){
+      openPomodoroFullscreen();
+    }
+
     renderOrUpdateFloatingPomoTimer();
+    renderOrUpdateFullscreenPomo();
     render();
   }
 }
@@ -13058,6 +13470,7 @@ function resetPomoTimer(){
   savePomoState();
   updatePomoDocTitle();
   renderOrUpdateFloatingPomoTimer();
+  renderOrUpdateFullscreenPomo();
   render();
 }
 
@@ -13809,7 +14222,7 @@ function renderCollege(){
             : collegeTab === 'attendance' ? `Target: ${currentAttendanceThreshold}%`
             : collegeTab === 'updates' ? `${STORE.college.updates.length} notices`
             : `Date: ${collegeDate}`,
-      defaultExpanded: false,
+      defaultExpanded: true,
       contentHtml: collegeTab === 'timeline' ? renderCollegeTimelineView(daySched)
             : collegeTab === 'classes' ? renderCollegeClassesView(daySched)
             : collegeTab === 'attendance' ? AttendanceCalculator.renderView(STORE, currentAttendanceThreshold)
@@ -15685,10 +16098,6 @@ function mountAnalytics(){
 let badgesFilter = 'all';
 
 function getBadgesData(){
-  const dojoBelts = (STORE.dojo && STORE.dojo.belts) || [];
-  const whiteBelt = dojoBelts.find(b => b.number === 1)?.completed || false;
-  const masterBelt = dojoBelts.find(b => b.number === 9 || b.number === 10)?.completed || false;
-
   const maxStreak = Math.max(currentStreak(), ...STORE.habits.map(h => habitStreak(h.id)));
   const totalPomos = STORE.pomodoroHistory.filter(h => h.type === 'focus').length;
   const totalStudyHrs = STORE.studySessions.reduce((sum, s) => sum + Number(s.hours || 0), 0);
@@ -15703,8 +16112,6 @@ function getBadgesData(){
   const goalsAchievedCount = fitnessGoals.filter(g => g.status === 'Achieved' || g.currentValue >= g.targetValue).length;
 
   return [
-    { id: 'dojo_novice', title: 'White Belt Initiate', category: '🥋 Dojo', desc: 'Complete White Belt in Dojo DSA Tracker', unlocked: whiteBelt, progress: whiteBelt ? 100 : 50, icon: '🥋' },
-    { id: 'dojo_master', title: 'Grandmaster Coder', category: '🥋 Dojo', desc: 'Reach Black Belt or Master Level in Dojo', unlocked: masterBelt, progress: masterBelt ? 100 : clamp(Math.round((dojoBelts.filter(b=>b.completed).length / 10)*100), 0, 100), icon: '🏆' },
     { id: 'streak_novice', title: 'Streak Starter', category: '🔥 Streak', desc: 'Maintain a 3-day active habit streak', unlocked: maxStreak >= 3, progress: clamp(Math.round((maxStreak / 3) * 100), 0, 100), icon: '⚡' },
     { id: 'streak_master', title: 'Habit Titan', category: '🔥 Streak', desc: 'Achieve a 14-day consecutive habit streak', unlocked: maxStreak >= 14, progress: clamp(Math.round((maxStreak / 14) * 100), 0, 100), icon: '🔥' },
     { id: 'streak_warrior', title: 'Journey Champion', category: '🔥 Streak', desc: 'Reach a 30-day streak milestone', unlocked: maxStreak >= 30, progress: clamp(Math.round((maxStreak / 30) * 100), 0, 100), icon: '👑' },
@@ -15744,7 +16151,7 @@ function renderBadges(){
       <div>
         <div class="section-badge">Gamified Achievements</div>
         <div class="section-hero-title">Achievements &amp; Badges</div>
-        <div class="dim" style="font-size:14px; margin-top:2px;">Track milestones across habits, focus, study, and Dojo belts.</div>
+        <div class="dim" style="font-size:14px; margin-top:2px;">Track milestones across habits, focus, study, fitness, and daily planning.</div>
       </div>
       <div style="text-align:right;">
         <div class="mono" style="font-size:24px; font-weight:800; color:var(--accent);">${unlockedCount} / ${badges.length}</div>
@@ -18220,6 +18627,8 @@ function renderSettings(){
   const lockDaysRemaining = Math.max(0, diffDays(today, sched.lockUntil));
   const remaining = daysRemaining();
   const isCycleEditLocked = isTargetSetupCompleted() || sched.locked || (sched.currentCycle >= 2 && !isTargetCompleted) || isLockPeriodActive;
+  const aboutCycleDocUrl = (STORE.settings && STORE.settings.aboutCycleDocUrl) || 'https://docs.google.com/document/d/14H0fyrX7d7GDtxSUwecF4guQVvKPEnIGGgtR22IxEwM/edit?usp=sharing';
+  const isAdmin = isAdminUser();
 
   let cycleStageStatusText = '';
   if(isTargetCompleted){
@@ -18367,6 +18776,28 @@ function renderSettings(){
           </div>
         </div>
 
+        <!-- ABOUT CYCLE PROCESS DOCUMENTATION LINK -->
+        <div class="flex between items-center wrap gap-8 mb-16" style="background:var(--bg-2); border-radius:10px; border:1px solid var(--border-soft); padding:12px 14px;">
+          <div class="flex items-center gap-10">
+            <span style="font-size:22px;">📄</span>
+            <div>
+              <div style="font-weight:700; font-size:13.5px; color:var(--text-bright);">About Cycle Process</div>
+              <div class="dim" style="font-size:11.5px; margin-top:2px;">Official documentation &amp; workflow guidelines for 90-day Target Cycles.</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-8 wrap">
+            <a href="${escapeHtml(aboutCycleDocUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-accent" style="display:inline-flex; align-items:center; gap:6px;">
+              <span>Open Documentation</span>
+              <span style="font-size:11px;">↗</span>
+            </a>
+            ${isAdmin ? `
+              <button type="button" class="btn btn-sm btn-ghost" id="editAboutCycleDocBtn" style="border:1px solid var(--border-soft); color:var(--accent2);" title="Admin only: Update Google Doc URL">
+                ✎ Edit Link
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
         <!-- Real-time Score Requirement & Lock Banner -->
         <div class="grid grid-3" style="gap:12px; margin-bottom:16px;">
           <div class="card" style="background:var(--glass); padding:12px;">
@@ -18481,23 +18912,33 @@ function renderSettings(){
         </div>
       </div>
 
-      <div class="card" style="grid-column:span 2;">
+      <div class="card" id="settingsBackupCard" style="grid-column:span 2;">
         <div class="card-title">Data Backup, Export &amp; Reports</div>
-        <p class="dim" style="font-size:13px; margin-bottom:14px;">All your data is stored locally in your browser with dual-layer IndexedDB and LocalStorage persistence. Export JSON or CSV backups regularly to safeguard your history.</p>
-        <div class="flex gap-8 wrap items-center">
-          <button class="btn btn-accent" id="exportDataBtn">Export JSON Backup</button>
-          <button class="btn btn-ghost" id="importDataBtn">Import JSON Backup</button>
-          <input type="file" id="importFileInput" accept=".json" style="display:none;"/>
-          
-          <button class="btn btn-accent2" id="manageSnapshotsBtn">📸 Backup Snapshots</button>
-          <button class="btn btn-ghost" id="openCsvCenterBtn">📊 Selective CSV Export Center</button>
-          <button class="btn btn-ghost" id="exportPomoCsvBtn">Export Pomodoro CSV</button>
-          <button class="btn btn-ghost" id="exportHabitsCsvBtn">Export Habits CSV</button>
-          <button class="btn btn-ghost" id="exportStudyCsvBtn">Export Study CSV</button>
-          <button class="btn btn-accent2" id="printReportCardBtn">📊 Export Progress Report (PDF) 🖨️</button>
-          <button class="btn btn-accent" id="weeklySummaryBtn">📧 Weekly Summary (.md / Email)</button>
+        <div style="background:var(--bg-2); padding:20px 22px; border-radius:12px; border:1px solid var(--border-soft); margin-top:8px;">
+          <div class="flex items-center gap-10" style="margin-bottom:8px;">
+            <span style="font-size:24px;">🚧</span>
+            <strong style="font-size:15px; color:var(--text-bright);">Feature Under Development</strong>
+          </div>
+          <p class="dim" style="font-size:13.5px; line-height:1.6; margin:0 0 14px 0;">
+            This feature is under development and may release soon. Have an idea for it? Contact the admin.
+          </p>
+          <div class="flex gap-8 wrap">
+            <a href="mailto:umakanthreddyannem2007@gmail.com?subject=DAYSTACK%20Data%20Backup%20Feature%20Feedback" class="btn btn-sm btn-ghost" style="border:1px solid var(--border-soft); display:inline-flex; align-items:center; gap:6px;">
+              <span>✉️ Contact Admin / Share Ideas</span>
+            </a>
+          </div>
+        </div>
+      </div>
 
-          <button class="btn btn-danger" id="wipeDataBtn" style="margin-left:auto;">Reset All Data</button>
+      <div class="card" style="grid-column:span 2;">
+        <div class="flex between items-center wrap gap-8">
+          <div>
+            <div class="card-title" style="margin:0;">💬 Help Shape DAYSTACK</div>
+            <div class="dim" style="font-size:12.5px; margin-top:2px;">Have an idea, spotted a bug, or want to suggest a workflow improvement? Your feedback goes directly to the development team.</div>
+          </div>
+          <button type="button" class="btn btn-accent2" id="settingsOpenFeedbackBtn" style="display:inline-flex; align-items:center; gap:6px;">
+            <span>💬 Give Feedback</span>
+          </button>
         </div>
       </div>
 
@@ -18524,6 +18965,11 @@ function renderSettings(){
 }
 
 function mountSettings(){
+  const feedbackBtn = document.getElementById('settingsOpenFeedbackBtn');
+  if(feedbackBtn){
+    feedbackBtn.addEventListener('click', () => openFeedbackModal('Settings'));
+  }
+
   // Active Modules Toggle Listeners
   document.querySelectorAll('.set-mod-chk').forEach(chk => {
     chk.addEventListener('change', () => {
@@ -18563,6 +19009,22 @@ function mountSettings(){
       updateSidebarNavVisibility();
       render();
       toast('✓ Minimal mode enabled (Planner, Habits, Pomodoro)');
+    });
+  }
+
+  const editDocBtn = document.getElementById('editAboutCycleDocBtn');
+  if(editDocBtn){
+    editDocBtn.addEventListener('click', () => {
+      if(!isAdminUser()) return toast('Admin access required');
+      const currentUrl = (STORE.settings && STORE.settings.aboutCycleDocUrl) || 'https://docs.google.com/document/d/14H0fyrX7d7GDtxSUwecF4guQVvKPEnIGGgtR22IxEwM/edit?usp=sharing';
+      const newUrl = prompt('Enter the updated Google Doc URL for "About Cycle Process":', currentUrl);
+      if(newUrl && newUrl.trim() && newUrl.trim() !== currentUrl){
+        if(!STORE.settings) STORE.settings = {};
+        STORE.settings.aboutCycleDocUrl = newUrl.trim();
+        save();
+        render();
+        toast('✓ About Cycle Process URL updated successfully');
+      }
     });
   }
 
@@ -18976,7 +19438,7 @@ const ONBOARDING_STEPS_MASTER = [
   {
     id: 'daily_planner',
     section: 'planner',
-    targetSelector: '#plannerDateInput, .section-hero, .grid-3',
+    targetSelector: '[data-collapsible-key*="planner_routine_morning"], #plannerDateInput, .section-hero, .grid-3',
     fallbackSelector: '#content',
     icon: '▤',
     sectionLabel: 'Daily Planner',
@@ -19161,30 +19623,40 @@ const SECTION_TOURS = {
       title: 'Time-Blocked Daily Routines 🌅',
       desc: 'Organize your day into Morning, Afternoon, and Night blocks. Add tasks with estimated times and priority indicators.',
       tip: '💡 Pro Tip: Group similar tasks into a single time block to minimize context switching.',
-      targetSelector: '#plannerDateInput, .section-hero, .grid-3',
+      targetSelector: '.grid-3, [data-collapsible-key*="planner_routine_morning"], .btn-add-routine-item',
       fallbackSelector: '#content',
       cursorAction: 'hover',
       cursorLabel: 'Explore Blocks'
     },
     {
       id: 'planner_mits',
-      title: 'Top 3 MIT Priorities 🔥',
-      desc: 'Highlight your Most Important Tasks (MITs) for the day. Items with assigned times trigger timely notification chimes.',
-      tip: '💡 Pro Tip: Complete your top 1-2 MITs before noon for maximum productivity momentum.',
-      targetSelector: '#mbMit1, .planner-mits-card, .grid-3, .card',
-      fallbackSelector: '#content',
+      title: 'Top MIT Priorities & Briefing 🔥',
+      desc: 'Click "Morning Briefing" (g + b) to set your 3 Most Important Tasks for the day. Tasks with times trigger audio reminder chimes.',
+      tip: '💡 Pro Tip: Complete your top MIT before noon for maximum productivity momentum.',
+      targetSelector: '#plannerBriefingBtn, #plannerDebriefBtn, #plannerScore',
+      fallbackSelector: '#plannerDateInput, #content',
       cursorAction: 'click',
       cursorLabel: 'Set Priorities'
     },
     {
       id: 'planner_notes_vitals',
-      title: 'Vitals Logging & Freeform Notes 📝',
-      desc: 'Log your daily water intake, mood rating, sleep hours, and jot down scratch notes or reflections for the day.',
-      tip: '💡 Pro Tip: Your daily score updates automatically as tasks and habits are checked off.',
-      targetSelector: '#plannerNotes, #plannerScore, .card',
-      fallbackSelector: '#content',
+      title: 'Notes, Reflections & History 📝',
+      desc: 'Write daily markdown notes, toggle guided evening reflections, or browse historical notes across previous dates.',
+      tip: '💡 Pro Tip: Notes auto-save continuously in your browser with dual-layer local persistence.',
+      targetSelector: '[data-collapsible-key*="planner_notes"], #plannerNotes, #notesPanelGeneral, #notesTabGeneralBtn, #openNotesHistoryBtn',
+      fallbackSelector: '.grid-2, #content',
       cursorAction: 'hover',
-      cursorLabel: 'Track Vitals'
+      cursorLabel: 'Daily Notes'
+    },
+    {
+      id: 'planner_vitals_card',
+      title: 'Mood, Energy & Vitals Tracking 💧',
+      desc: 'Track daily mood ratings (1-5), wake/sleep times, and hydration glasses to optimize energy and focus stamina.',
+      tip: '💡 Pro Tip: Reaching 8 glasses of water daily helps maintain sustained cognitive endurance.',
+      targetSelector: '[data-collapsible-key*="planner_vitals"], .mood-row, #wakeTime, #waterPlus',
+      fallbackSelector: '.grid-2, #content',
+      cursorAction: 'hover',
+      cursorLabel: 'Log Vitals'
     }
   ],
 
@@ -19617,36 +20089,89 @@ const SECTION_TOURS = {
     }
   ],
 
+  college: [
+    {
+      id: 'college_schedule',
+      title: 'Daily College Planner & Timetable 🏛️',
+      desc: 'Review your daily class schedule, start/end hours (e.g. 08:30 - 16:30), and track present vs absent attendance.',
+      tip: '💡 Pro Tip: Click "Edit Hours" to align the timetable with your college semester timing.',
+      targetSelector: '#colDatePicker, #colTodayBtn, #colHoursBtn, .card',
+      fallbackSelector: '#content',
+      cursorAction: 'hover',
+      cursorLabel: 'Daily Schedule'
+    },
+    {
+      id: 'college_tabs',
+      title: 'Timeline, Classes & Bunk Calculator 📚',
+      desc: 'Switch between morning-to-evening timeline, subject agendas, attendance safety calculators, and academic deadlines.',
+      tip: '💡 Pro Tip: The Timeline view maps your academic commitments alongside focus study sprints.',
+      targetSelector: '.sub-tab-bar, [data-college-tab="timeline"]',
+      fallbackSelector: '.card',
+      cursorAction: 'click',
+      cursorLabel: 'Sub-Tabs'
+    },
+    {
+      id: 'college_attendance_bunk',
+      title: 'Attendance Safety & Bunk Predictor 🛡️',
+      desc: 'Automatic attendance predictor calculates safe bunks remaining vs classes required to maintain >=75% criteria.',
+      tip: '💡 Pro Tip: Stay comfortably above 80% attendance to prevent end-semester debarment warnings.',
+      targetSelector: '[data-college-tab="attendance"], .card',
+      fallbackSelector: '#content',
+      cursorAction: 'click',
+      cursorLabel: 'Attendance Calc'
+    }
+  ],
+
   settings: [
     {
       id: 'settings_profile',
-      title: 'Profile & Student Command 👤',
-      desc: 'Customize your display name, college name, branch, and target graduation preferences.',
-      tip: '💡 Pro Tip: Your profile name personalizes all system briefings and notifications.',
-      targetSelector: '#setName, .section-hero, .card',
+      title: 'Profile & Personal Settings 👤',
+      desc: 'Customize your display name and vitals preferences to personalize all system briefings.',
+      tip: '💡 Pro Tip: Your profile name appears in your morning and evening debriefs.',
+      targetSelector: '#setName, #setHeight, #savePersonalBtn, .card',
       fallbackSelector: '#content',
       cursorAction: 'click',
       cursorLabel: 'Profile'
     },
     {
       id: 'settings_modules',
-      title: 'Modular Workspace Toggles 🧩',
-      desc: 'Enable or disable modules (Dojo, Finance, Fitness, Contests, Exams) to fit your exact current needs.',
-      tip: '💡 Pro Tip: Hide unused modules to keep your sidebar clean and focused.',
-      targetSelector: '#setSelectAllMods, #setClearMods, .card',
+      title: 'Modular Workspace Customization 🧩',
+      desc: 'Enable or disable any of the 14 modules (Contests, Exams, College, Dojo, Fitness, Finance) without losing saved data.',
+      tip: '💡 Pro Tip: Disable unused sections to keep your sidebar clean and distraction-free.',
+      targetSelector: '#setSelectAllMods, #setClearMods, .set-mod-chk, .card',
       fallbackSelector: '#content',
       cursorAction: 'click',
       cursorLabel: 'Modules'
     },
     {
       id: 'settings_themes',
-      title: 'Themes & Aesthetics 🎨',
-      desc: 'Switch between Dark, Light, and Ultra-Glass themes with curated accent color palettes.',
-      tip: '💡 Pro Tip: Customizing your workspace aesthetics makes daily tracking enjoyable and personal.',
-      targetSelector: '.theme-swatch, .color-swatch-grid, .card',
+      title: 'Themes & Accent Colors 🎨',
+      desc: 'Switch between Dark Mode, Light Mode, and Ultra-Glass with curated accent color presets.',
+      tip: '💡 Pro Tip: Customizing your workspace theme makes daily tracking visually rewarding.',
+      targetSelector: '#setDarkThemeBtn, #setLightThemeBtn, #setUltraGlassBtn, .color-swatch-grid',
       fallbackSelector: '#content',
       cursorAction: 'click',
       cursorLabel: 'Themes'
+    },
+    {
+      id: 'settings_cycle',
+      title: 'State-Controlled Cycle Management 🔒',
+      desc: 'Manage your active cycle dates, milestone roadmaps, and discipline score reset criteria (>=85% required).',
+      tip: '💡 Pro Tip: The lock period safeguards your commitment against premature restarts.',
+      targetSelector: '#saveScheduleBtn, #startCycleBtn, #resetCycleBtn, .card',
+      fallbackSelector: '#content',
+      cursorAction: 'click',
+      cursorLabel: 'Cycle Schedule'
+    },
+    {
+      id: 'settings_backup',
+      title: 'Data Backup, Snapshots & PDF Report 💾',
+      desc: 'Export JSON backups, manage snapshots, download CSV data, or generate a PDF report card offline.',
+      tip: '💡 Pro Tip: Export a JSON backup regularly to safeguard your productivity journey.',
+      targetSelector: '#settingsBackupCard, #settingsOpenFeedbackBtn, .card',
+      fallbackSelector: '#content',
+      cursorAction: 'click',
+      cursorLabel: 'Data Backup'
     }
   ],
 
@@ -19747,10 +20272,9 @@ const TourEngine = {
 
   shouldAutoLaunchSectionTour(sectionKey) {
     if (this.isActive) return false;
-    if (!STORE.onboarding || !STORE.onboarding.completed) return false;
-    if (STORE.onboarding.sectionToursCompleted && STORE.onboarding.sectionToursCompleted[sectionKey]) return false;
+    if (STORE.onboarding?.sectionToursCompleted && STORE.onboarding.sectionToursCompleted[sectionKey]) return false;
     try {
-      if (localStorage.getItem('orvyn_tour_sec_' + sectionKey) === 'true') {
+      if (localStorage.getItem('daystack_tour_sec_' + sectionKey) === 'true') {
         if (!STORE.onboarding.sectionToursCompleted) STORE.onboarding.sectionToursCompleted = {};
         STORE.onboarding.sectionToursCompleted[sectionKey] = true;
         return false;
@@ -20058,8 +20582,8 @@ const TourEngine = {
       left = Math.max(margin, (window.innerWidth - cardWidth) / 2);
     }
 
-    // Strict screen boundary clamping
-    top = Math.max(10, Math.min(window.innerHeight - cardHeight - 10, top));
+    // Strict screen boundary clamping (preserving topbar visibility)
+    top = Math.max(68, Math.min(window.innerHeight - cardHeight - 10, top));
     left = Math.max(10, Math.min(window.innerWidth - cardWidth - 10, left));
 
     card.style.position = 'fixed';
@@ -20199,8 +20723,8 @@ const TourEngine = {
       if (!STORE.user) STORE.user = {};
       STORE.user.onboardingCompleted = true;
       try {
-        localStorage.setItem('orvyn_onboarding_completed', 'true');
-        localStorage.setItem('orvyn_tour_completed', 'true');
+        localStorage.setItem('daystack_onboarding_completed', 'true');
+        localStorage.setItem('daystack_tour_completed', 'true');
       } catch (_) {}
       save();
       if (!quiet) {
@@ -20210,7 +20734,7 @@ const TourEngine = {
     } else if (this.currentMode === 'section' && this.currentSectionKey) {
       STORE.onboarding.sectionToursCompleted[this.currentSectionKey] = true;
       try {
-        localStorage.setItem('orvyn_tour_sec_' + this.currentSectionKey, 'true');
+        localStorage.setItem('daystack_tour_sec_' + this.currentSectionKey, 'true');
       } catch (_) {}
       save();
       if (!quiet) {
@@ -21657,7 +22181,17 @@ function init(){
     } else if(e.key === 'n' || e.key === 'N' || e.key === '+'){
       e.preventDefault();
       openQuickAdd();
-    } else if(e.code === 'Space' && (currentSection === 'pomodoro' || document.getElementById('pomoStartBtn'))){
+    } else if(e.key === 'f' || e.key === 'F'){
+      if(isPomodoroFullscreenOpen || document.getElementById('pomoFullscreenOverlay') || currentSection === 'pomodoro' || pomodoroState.running){
+        e.preventDefault();
+        togglePomodoroFullscreen();
+      }
+    } else if(e.key === 'Escape'){
+      if(isPomodoroFullscreenOpen || document.getElementById('pomoFullscreenOverlay')){
+        e.preventDefault();
+        closePomodoroFullscreen();
+      }
+    } else if(e.code === 'Space' && (currentSection === 'pomodoro' || document.getElementById('pomoStartBtn') || isPomodoroFullscreenOpen)){
       e.preventDefault();
       togglePomoTimer();
     }

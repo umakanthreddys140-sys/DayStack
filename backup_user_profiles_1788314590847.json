@@ -1,0 +1,560 @@
+[
+  {
+    "id": "4b5aa51d-49ce-4256-b528-9184b0026ec5",
+    "email": "umakanthreddyannem2007@gmail.com",
+    "data": {
+      "dojo": {
+        "belts": [
+          {
+            "name": "White Belt",
+            "badge": "Foundation",
+            "number": 1,
+            "topics": "Syntax, Variables, Control Flow",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 10,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Yellow Belt",
+            "badge": "Logic & Loops",
+            "number": 2,
+            "topics": "Arrays, Strings, Loops",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 25,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Orange Belt",
+            "badge": "Data Structures Basics",
+            "number": 3,
+            "topics": "Hash Maps, Two Pointers",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 45,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Green Belt",
+            "badge": "Intermediate DSA",
+            "number": 4,
+            "topics": "Recursion, Sorting, Searching",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 70,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Blue Belt",
+            "badge": "Advanced DSA",
+            "number": 5,
+            "topics": "Linked Lists, Stacks, Queues",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 100,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Purple Belt",
+            "badge": "Trees & Graphs",
+            "number": 6,
+            "topics": "Binary Trees, Graphs, BFS/DFS",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 135,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Brown Belt",
+            "badge": "Dynamic Programming",
+            "number": 7,
+            "topics": "1D & 2D Dynamic Programming",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 175,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Red Belt",
+            "badge": "Competitive Mastery",
+            "number": 8,
+            "topics": "Greedy, Advanced Graph, Tries",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 220,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Black Belt",
+            "badge": "Grandmaster Optimization",
+            "number": 9,
+            "topics": "System Architecture & Optimization",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 270,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Master Belt",
+            "badge": "Legendary",
+            "number": 10,
+            "topics": "All Core Topics & Hard Problems",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 330,
+            "problemsCompleted": 0
+          }
+        ],
+        "attempts": [],
+        "dsaTopics": [
+          {
+            "id": "arrays",
+            "name": "Arrays & Strings",
+            "status": "up-next"
+          },
+          {
+            "id": "recursion",
+            "name": "Recursion & Backtracking",
+            "status": "up-next"
+          },
+          {
+            "id": "linked-lists",
+            "name": "Linked Lists",
+            "status": "up-next"
+          },
+          {
+            "id": "trees",
+            "name": "Trees & Graphs",
+            "status": "up-next"
+          },
+          {
+            "id": "dp",
+            "name": "Dynamic Programming",
+            "status": "up-next"
+          }
+        ],
+        "languages": [
+          {
+            "id": "cpp",
+            "name": "C++",
+            "level": "Foundation",
+            "target": 8,
+            "problems": 0
+          },
+          {
+            "id": "python",
+            "name": "Python",
+            "level": "Foundation",
+            "target": 6,
+            "problems": 0
+          },
+          {
+            "id": "java",
+            "name": "Java",
+            "level": "Foundation",
+            "target": 5,
+            "problems": 0
+          },
+          {
+            "id": "javascript",
+            "name": "JavaScript",
+            "level": "Foundation",
+            "target": 6,
+            "problems": 0
+          }
+        ],
+        "beltTargets": [],
+        "codingTasks": []
+      },
+      "user": {
+        "profile": {
+          "name": "umakanthreddyannem2007",
+          "email": "umakanthreddyannem2007@gmail.com",
+          "phone": "",
+          "themeColor": "teal",
+          "authProvider": "email",
+          "fitnessGoals": "",
+          "primaryGoals": [],
+          "academicGoals": "",
+          "codingLanguage": "",
+          "dailyFocusTarget": 8
+        },
+        "loggedIn": true,
+        "landingSeen": true,
+        "onboardingCompleted": false
+      },
+      "books": [],
+      "exams": {
+        "list": [],
+        "sgpaCourses": [],
+        "cgpaSemesters": []
+      },
+      "goals": [],
+      "notes": [],
+      "habits": [],
+      "college": {
+        "updates": [],
+        "schedules": {},
+        "defaultClasses": [],
+        "semesterSubjects": []
+      },
+      "finance": [],
+      "history": [],
+      "journal": [],
+      "contests": {
+        "goals": [],
+        "entries": []
+      },
+      "mistakes": [],
+      "projects": [],
+      "settings": {
+        "name": "umakanthreddyannem2007",
+        "theme": "dark",
+        "accent": "teal",
+        "height": null,
+        "pomodoro": {
+          "dailyGoal": 8,
+          "autoStartNext": false,
+          "autoStartBreaks": false,
+          "lockDistractions": false
+        },
+        "schedule": {
+          "locked": false,
+          "endDate": "2027-02-17",
+          "cycleGoal": "Complete 184-day Productivity Journey",
+          "lockUntil": "",
+          "maxCycles": 3,
+          "startDate": "2026-08-17",
+          "currentCycle": 1,
+          "editsRemaining": 3
+        },
+        "animation": {
+          "speed": 1,
+          "enabled": true
+        },
+        "isKalviumStudent": false,
+        "sidebarCollapsed": false
+      },
+      "academics": {
+        "sgpaCourses": [],
+        "cgpaSemesters": []
+      },
+      "habitLogs": {},
+      "healthLogs": {},
+      "onboarding": {
+        "step": 0,
+        "completed": false
+      },
+      "fitnessLogs": {},
+      "plannerData": {},
+      "cycleHistory": [],
+      "fitnessGoals": [],
+      "studySessions": [],
+      "dismissedHints": {},
+      "pinnedSections": {},
+      "pomodoroConfig": {
+        "focusMinutes": 25,
+        "longBreakMinutes": 15,
+        "longBreakInterval": 4,
+        "shortBreakMinutes": 5
+      },
+      "unlockedBadges": [],
+      "fitnessTrackers": [],
+      "pomodoroHistory": [],
+      "expandedSections": {},
+      "notificationsLog": [],
+      "deliveredNotifIds": [],
+      "recurringExpenses": [],
+      "notificationsConfig": {
+        "leadMinutes": 5,
+        "audioEnabled": true,
+        "browserEnabled": false,
+        "hapticsEnabled": true
+      },
+      "notificationsReadIds": [],
+      "notificationsDismissedIds": []
+    },
+    "created_at": "2026-08-17T10:50:22.355879+00:00",
+    "updated_at": "2026-08-25T15:30:41.555+00:00"
+  },
+  {
+    "id": "af70f075-7871-4f21-b3b9-700d28ef57c9",
+    "email": "reshman.nagendra.s.140@kalvium.community",
+    "data": {
+      "dojo": {
+        "belts": [
+          {
+            "name": "White Belt",
+            "badge": "Foundation",
+            "number": 1,
+            "topics": "Syntax, Variables, Control Flow",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 10,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Yellow Belt",
+            "badge": "Logic & Loops",
+            "number": 2,
+            "topics": "Arrays, Strings, Loops",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 25,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Orange Belt",
+            "badge": "Data Structures Basics",
+            "number": 3,
+            "topics": "Hash Maps, Two Pointers",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 45,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Green Belt",
+            "badge": "Intermediate DSA",
+            "number": 4,
+            "topics": "Recursion, Sorting, Searching",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 70,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Blue Belt",
+            "badge": "Advanced DSA",
+            "number": 5,
+            "topics": "Linked Lists, Stacks, Queues",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 100,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Purple Belt",
+            "badge": "Trees & Graphs",
+            "number": 6,
+            "topics": "Binary Trees, Graphs, BFS/DFS",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 135,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Brown Belt",
+            "badge": "Dynamic Programming",
+            "number": 7,
+            "topics": "1D & 2D Dynamic Programming",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 175,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Red Belt",
+            "badge": "Competitive Mastery",
+            "number": 8,
+            "topics": "Greedy, Advanced Graph, Tries",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 220,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Black Belt",
+            "badge": "Grandmaster Optimization",
+            "number": 9,
+            "topics": "System Architecture & Optimization",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 270,
+            "problemsCompleted": 0
+          },
+          {
+            "name": "Master Belt",
+            "badge": "Legendary",
+            "number": 10,
+            "topics": "All Core Topics & Hard Problems",
+            "completed": false,
+            "targetDate": "",
+            "problemsRequired": 330,
+            "problemsCompleted": 0
+          }
+        ],
+        "attempts": [],
+        "dsaTopics": [
+          {
+            "id": "arrays",
+            "name": "Arrays & Strings",
+            "status": "up-next"
+          },
+          {
+            "id": "recursion",
+            "name": "Recursion & Backtracking",
+            "status": "up-next"
+          },
+          {
+            "id": "linked-lists",
+            "name": "Linked Lists",
+            "status": "up-next"
+          },
+          {
+            "id": "trees",
+            "name": "Trees & Graphs",
+            "status": "up-next"
+          },
+          {
+            "id": "dp",
+            "name": "Dynamic Programming",
+            "status": "up-next"
+          }
+        ],
+        "languages": [
+          {
+            "id": "cpp",
+            "name": "C++",
+            "level": "Foundation",
+            "target": 8,
+            "problems": 0
+          },
+          {
+            "id": "python",
+            "name": "Python",
+            "level": "Foundation",
+            "target": 6,
+            "problems": 0
+          },
+          {
+            "id": "java",
+            "name": "Java",
+            "level": "Foundation",
+            "target": 5,
+            "problems": 0
+          },
+          {
+            "id": "javascript",
+            "name": "JavaScript",
+            "level": "Foundation",
+            "target": 6,
+            "problems": 0
+          }
+        ],
+        "beltTargets": [],
+        "codingTasks": []
+      },
+      "user": {
+        "profile": {
+          "name": "reshman.nagendra.s.140",
+          "email": "reshman.nagendra.s.140@kalvium.community",
+          "phone": "",
+          "themeColor": "teal",
+          "authProvider": "email",
+          "fitnessGoals": "",
+          "primaryGoals": [],
+          "academicGoals": "",
+          "codingLanguage": "",
+          "dailyFocusTarget": 8
+        },
+        "loggedIn": true,
+        "landingSeen": true,
+        "onboardingCompleted": false
+      },
+      "books": [],
+      "exams": {
+        "list": [],
+        "sgpaCourses": [],
+        "cgpaSemesters": []
+      },
+      "goals": [],
+      "notes": [],
+      "habits": [],
+      "college": {
+        "updates": [],
+        "schedules": {},
+        "defaultClasses": [],
+        "semesterSubjects": []
+      },
+      "finance": [],
+      "history": [],
+      "journal": [],
+      "contests": {
+        "goals": [],
+        "entries": []
+      },
+      "mistakes": [],
+      "projects": [],
+      "settings": {
+        "name": "reshman.nagendra.s.140",
+        "theme": "dark",
+        "accent": "teal",
+        "height": null,
+        "pomodoro": {
+          "dailyGoal": 8,
+          "autoStartNext": false,
+          "autoStartBreaks": false,
+          "lockDistractions": false
+        },
+        "schedule": {
+          "locked": false,
+          "endDate": "2027-02-17",
+          "cycleGoal": "Complete 184-day Productivity Journey",
+          "lockUntil": "",
+          "maxCycles": 3,
+          "startDate": "2026-08-17",
+          "currentCycle": 1,
+          "editsRemaining": 3
+        },
+        "animation": {
+          "speed": 1,
+          "enabled": true
+        },
+        "isKalviumStudent": false,
+        "sidebarCollapsed": false
+      },
+      "academics": {
+        "sgpaCourses": [],
+        "cgpaSemesters": []
+      },
+      "habitLogs": {},
+      "healthLogs": {},
+      "onboarding": {
+        "step": 0,
+        "completed": false
+      },
+      "fitnessLogs": {},
+      "plannerData": {},
+      "cycleHistory": [],
+      "fitnessGoals": [],
+      "studySessions": [],
+      "dismissedHints": {},
+      "pinnedSections": {},
+      "pomodoroConfig": {
+        "focusMinutes": 25,
+        "longBreakMinutes": 15,
+        "longBreakInterval": 4,
+        "shortBreakMinutes": 5
+      },
+      "unlockedBadges": [],
+      "fitnessTrackers": [],
+      "pomodoroHistory": [],
+      "expandedSections": {},
+      "notificationsLog": [],
+      "deliveredNotifIds": [],
+      "recurringExpenses": [],
+      "notificationsConfig": {
+        "leadMinutes": 5,
+        "audioEnabled": true,
+        "browserEnabled": false,
+        "hapticsEnabled": true
+      },
+      "notificationsReadIds": [],
+      "notificationsDismissedIds": []
+    },
+    "created_at": "2026-08-17T10:50:31.168231+00:00",
+    "updated_at": "2026-08-25T15:30:50.269+00:00"
+  }
+]

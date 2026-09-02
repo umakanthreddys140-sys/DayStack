@@ -50,6 +50,47 @@ setInterval(cleanTokenCache, 60000);
 const AUDIT_FILE = path.join(__dirname, '.audit.log.json');
 const EMAIL_TEMPLATES_FILE = path.join(__dirname, '.email_templates.json');
 const EMAIL_HISTORY_FILE = path.join(__dirname, '.email_history.json');
+const FEEDBACK_FILE = path.join(__dirname, '.feedback.json');
+const CONTENT_CONFIG_FILE = path.join(__dirname, '.content_config.json');
+
+// Helper for feedback storage
+export function getFeedbackList() {
+  try {
+    if (fs.existsSync(FEEDBACK_FILE)) {
+      return JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf-8'));
+    }
+  } catch {}
+  return [];
+}
+
+export function saveFeedbackList(list) {
+  try {
+    writeAtomicJson(FEEDBACK_FILE, list, true);
+  } catch (err) {
+    console.error('Failed to save feedback list:', err);
+  }
+}
+
+// Helper for content config
+export function getContentConfig() {
+  try {
+    if (fs.existsSync(CONTENT_CONFIG_FILE)) {
+      return JSON.parse(fs.readFileSync(CONTENT_CONFIG_FILE, 'utf-8'));
+    }
+  } catch {}
+  return {
+    aboutCycleDocUrl: 'https://docs.google.com/document/d/14H0fyrX7d7GDtxSUwecF4guQVvKPEnIGGgtR22IxEwM/edit?usp=sharing',
+    backupPlaceholderText: 'This feature is under development and may release soon. Have an idea for it? Contact the admin.'
+  };
+}
+
+export function saveContentConfig(cfg) {
+  try {
+    writeAtomicJson(CONTENT_CONFIG_FILE, cfg, true);
+  } catch (err) {
+    console.error('Failed to save content config:', err);
+  }
+}
 
 // Helper to write atomic json
 function writeAtomicJson(filePath, data, formatted = false) {
@@ -298,11 +339,113 @@ export async function readUserStore(userId) {
   let rawData = null;
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('user_profiles').select('data').eq('id', userId).single();
-      if (!error && data && data.data) {
-        rawData = data.data;
+      // 1. Try reading from new multi-table section schema
+      const { data: settingsRow } = await supabase.from('user_settings').select('*').eq('id', userId).single();
+      if (settingsRow) {
+        // Multi-table rows exist! Assemble full store from separate section tables
+        const [
+          { data: plannerRows },
+          { data: habitsRows },
+          { data: habitLogRows },
+          { data: pomoRows },
+          { data: goalsRows },
+          { data: projectRows },
+          { data: studyRows },
+          { data: contestRows },
+          { data: examRows },
+          { data: collegeRow },
+          { data: fitnessRow },
+          { data: financeRows },
+          { data: journalNotesRow }
+        ] = await Promise.all([
+          supabase.from('planner_days').select('*').eq('user_id', userId),
+          supabase.from('habits').select('*').eq('user_id', userId),
+          supabase.from('habit_logs').select('*').eq('user_id', userId),
+          supabase.from('pomodoro_sessions').select('*').eq('user_id', userId),
+          supabase.from('goals').select('*').eq('user_id', userId),
+          supabase.from('projects').select('*').eq('user_id', userId),
+          supabase.from('study_sessions').select('*').eq('user_id', userId),
+          supabase.from('contests').select('*').eq('user_id', userId),
+          supabase.from('exams').select('*').eq('user_id', userId),
+          supabase.from('college_timetable').select('*').eq('user_id', userId).single(),
+          supabase.from('fitness_vitals').select('*').eq('user_id', userId).single(),
+          supabase.from('finance_transactions').select('*').eq('user_id', userId),
+          supabase.from('journal_and_notes').select('*').eq('user_id', userId).single()
+        ]);
+
+        const plannerData = {};
+        (plannerRows || []).forEach(r => {
+          plannerData[r.date] = {
+            tasks: r.tasks || [],
+            checklist: r.checklist || [],
+            notes: r.notes || '',
+            mood: r.mood,
+            energy: r.energy,
+            water: Number(r.water || 0),
+            sleepTime: r.sleep_time || '',
+            wakeTime: r.wake_time || '',
+            reflection: r.reflection || { wins: '', learned: '', improve: '', gratitude: '' }
+          };
+        });
+
+        const habitLogs = {};
+        (habitLogRows || []).forEach(r => {
+          if (!habitLogs[r.date]) habitLogs[r.date] = {};
+          habitLogs[r.date][r.habit_id] = r.status;
+        });
+
+        rawData = {
+          settings: {
+            name: settingsRow.name || 'Student',
+            theme: settingsRow.theme || 'dark',
+            accentColor: settingsRow.accent || 'blue',
+            glassFx: settingsRow.glass_fx || 'ultra',
+            schedule: settingsRow.schedule || {},
+            activeModules: settingsRow.active_modules || [],
+            aboutCycleDocUrl: settingsRow.about_cycle_doc_url
+          },
+          cycleHistory: settingsRow.cycle_history || [],
+          onboarding: settingsRow.onboarding || {},
+          pinnedSections: settingsRow.pinned_sections || {},
+          expandedSections: settingsRow.expanded_sections || {},
+          notificationsConfig: settingsRow.notifications_config || {},
+          plannerData,
+          habits: habitsRows || [],
+          habitLogs,
+          pomodoroHistory: pomoRows || [],
+          goals: goalsRows || [],
+          projects: projectRows || [],
+          studySessions: studyRows || [],
+          contests: { entries: contestRows || [], goals: [] },
+          exams: { list: examRows || [], sgpaCourses: [], cgpaSemesters: [] },
+          college: collegeRow ? {
+            schedules: collegeRow.schedules || {},
+            updates: collegeRow.updates || [],
+            defaultClasses: collegeRow.default_classes || [],
+            semesterSubjects: collegeRow.semester_subjects || []
+          } : { schedules: {}, updates: [], defaultClasses: [], semesterSubjects: [] },
+          fitnessTrackers: fitnessRow?.trackers || [],
+          fitnessGoals: fitnessRow?.goals || [],
+          fitnessLogs: fitnessRow?.vitals_logs || {},
+          healthLogs: fitnessRow?.health_logs || {},
+          finance: financeRows || [],
+          journal: journalNotesRow?.journal || [],
+          notes: journalNotesRow?.notes || [],
+          books: journalNotesRow?.books || [],
+          mistakes: journalNotesRow?.mistakes || []
+        };
       }
     } catch (err) {}
+
+    // Fallback to legacy single user_profiles table if separate tables not yet present
+    if (!rawData) {
+      try {
+        const { data, error } = await supabase.from('user_profiles').select('data').eq('id', userId).single();
+        if (!error && data && data.data) {
+          rawData = data.data;
+        }
+      } catch (err) {}
+    }
   }
 
   // Local user-isolated file fallback
@@ -327,19 +470,278 @@ export async function writeUserStore(userId, storeData) {
   const userFile = path.join(USERS_DIR, `${safeId}.json`);
   const normalized = normalizeServerUserStore(storeData, { id: userId });
 
-  // Write local isolated copy
+  // 1. Write local isolated copy
   try {
     writeAtomicJson(userFile, normalized, true);
   } catch (e) {}
 
   if (supabase) {
+    // 2. Write to separate section tables in Supabase
     try {
+      const userName = normalized.settings?.name || normalized.user?.profile?.name || normalized.user?.name || 'Student';
+
+      // a. user_settings
+      await supabase.from('user_settings').upsert({
+        id: userId,
+        email: normalized.user?.profile?.email || '',
+        name: userName,
+        user_name: userName,
+        theme: normalized.settings?.theme || 'dark',
+        accent: normalized.settings?.accentColor || normalized.settings?.accent || 'blue',
+        glass_fx: normalized.settings?.glassFx || 'ultra',
+        schedule: normalized.settings?.schedule || {},
+        cycle_history: normalized.cycleHistory || [],
+        active_modules: normalized.settings?.activeModules || [],
+        about_cycle_doc_url: normalized.settings?.aboutCycleDocUrl || 'https://docs.google.com/document/d/14H0fyrX7d7GDtxSUwecF4guQVvKPEnIGGgtR22IxEwM/edit?usp=sharing',
+        onboarding: normalized.onboarding || {},
+        pinned_sections: normalized.pinnedSections || {},
+        expanded_sections: normalized.expandedSections || {},
+        notifications_config: normalized.notificationsConfig || {},
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      // b. planner_days (write active dates)
+      if (normalized.plannerData && typeof normalized.plannerData === 'object') {
+        const plannerEntries = Object.entries(normalized.plannerData).map(([date, p]) => ({
+          user_id: userId,
+          user_name: userName,
+          date,
+          tasks: p.tasks || [],
+          checklist: p.checklist || [],
+          notes: p.notes || '',
+          mood: p.mood,
+          energy: p.energy,
+          water: Number(p.water || 0),
+          sleep_time: p.sleepTime || '',
+          wake_time: p.wakeTime || '',
+          reflection: p.reflection || { wins: '', learned: '', improve: '', gratitude: '' },
+          updated_at: new Date().toISOString()
+        }));
+        if (plannerEntries.length > 0) {
+          await supabase.from('planner_days').upsert(plannerEntries, { onConflict: 'user_id,date' });
+        }
+      }
+
+      // c. habits & habit_logs
+      if (Array.isArray(normalized.habits) && normalized.habits.length > 0) {
+        const habitRows = normalized.habits.map(h => ({
+          id: h.id,
+          user_id: userId,
+          user_name: userName,
+          name: h.name,
+          category: h.category || 'growth',
+          frequency: h.frequency || 'daily',
+          target_days: Number(h.targetDays || 7),
+          archived: Boolean(h.archived),
+          reminder_time: h.reminderTime || null,
+          stack_anchor: h.stackAnchor || null,
+          notes: h.notes || null,
+          created_at: h.createdAt || new Date().toISOString().slice(0, 10),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('habits').upsert(habitRows, { onConflict: 'id' });
+      }
+
+      if (normalized.habitLogs && typeof normalized.habitLogs === 'object') {
+        const logRows = [];
+        Object.entries(normalized.habitLogs).forEach(([date, dayMap]) => {
+          if (dayMap && typeof dayMap === 'object') {
+            Object.entries(dayMap).forEach(([habitId, status]) => {
+              logRows.push({
+                user_id: userId,
+                user_name: userName,
+                date,
+                habit_id: habitId,
+                status: String(status),
+                created_at: new Date().toISOString()
+              });
+            });
+          }
+        });
+        if (logRows.length > 0) {
+          await supabase.from('habit_logs').upsert(logRows, { onConflict: 'user_id,date,habit_id' });
+        }
+      }
+
+      // d. pomodoro_sessions
+      if (Array.isArray(normalized.pomodoroHistory) && normalized.pomodoroHistory.length > 0) {
+        const pomoRows = normalized.pomodoroHistory.map(p => ({
+          id: p.id || ('pomo_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          type: p.type || 'focus',
+          minutes: Number(p.minutes || 25),
+          task_id: p.taskId || null,
+          timestamp: p.timestamp || new Date().toISOString(),
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('pomodoro_sessions').upsert(pomoRows, { onConflict: 'id' });
+      }
+
+      // e. goals
+      if (Array.isArray(normalized.goals) && normalized.goals.length > 0) {
+        const goalRows = normalized.goals.map(g => ({
+          id: g.id || ('goal_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          title: g.title,
+          timeframe: g.timeframe || 'monthly',
+          deadline: g.deadline || null,
+          description: g.description || '',
+          category: g.category || 'life',
+          target: g.target || null,
+          unit: g.unit || null,
+          done: Boolean(g.done),
+          subtasks: g.subtasks || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('goals').upsert(goalRows, { onConflict: 'id' });
+      }
+
+      // f. projects
+      if (Array.isArray(normalized.projects) && normalized.projects.length > 0) {
+        const projRows = normalized.projects.map(p => ({
+          id: p.id || ('proj_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          title: p.title,
+          tech: p.tech || '',
+          desc: p.desc || '',
+          status: p.status || 'Active',
+          github_url: p.githubUrl || null,
+          live_url: p.liveUrl || null,
+          milestones: p.milestones || [],
+          logs: p.logs || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('projects').upsert(projRows, { onConflict: 'id' });
+      }
+
+      // g. study_sessions
+      if (Array.isArray(normalized.studySessions) && normalized.studySessions.length > 0) {
+        const studyRows = normalized.studySessions.map(s => ({
+          id: s.id || ('study_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          subject: s.subject,
+          topic: s.topic || '',
+          date: s.date || new Date().toISOString().slice(0, 10),
+          hours: Number(s.hours || 0),
+          problems: Number(s.problems || 0),
+          notes: s.notes || '',
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('study_sessions').upsert(studyRows, { onConflict: 'id' });
+      }
+
+      // h. contests
+      if (normalized.contests && Array.isArray(normalized.contests.entries) && normalized.contests.entries.length > 0) {
+        const contestRows = normalized.contests.entries.map(c => ({
+          id: c.id || ('contest_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          name: c.name,
+          platform: c.platform || 'Codeforces',
+          date: c.date,
+          start_time: c.startTime || null,
+          duration: c.duration || null,
+          contest_url: c.contestUrl || null,
+          registered: Boolean(c.registered),
+          reminder_set: Boolean(c.reminderSet),
+          target_rank: c.targetRank || null,
+          actual_rank: c.actualRank || null,
+          problems_solved: Number(c.problemsSolved || 0),
+          rating_change: c.ratingChange || null,
+          notes: c.notes || null,
+          status: c.status || 'upcoming',
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('contests').upsert(contestRows, { onConflict: 'id' });
+      }
+
+      // i. exams
+      if (normalized.exams && Array.isArray(normalized.exams.list) && normalized.exams.list.length > 0) {
+        const examRows = normalized.exams.list.map(e => ({
+          id: e.id || ('exam_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          name: e.name,
+          type: e.type || 'Internal / CAT',
+          date: e.date || null,
+          start_time: e.startTime || null,
+          end_time: e.endTime || null,
+          semester: e.semester || null,
+          notes: e.notes || '',
+          subjects: e.subjects || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('exams').upsert(examRows, { onConflict: 'id' });
+      }
+
+      // j. college_timetable
+      if (normalized.college) {
+        await supabase.from('college_timetable').upsert({
+          user_id: userId,
+          user_name: userName,
+          schedules: normalized.college.schedules || {},
+          updates: normalized.college.updates || [],
+          default_classes: normalized.college.defaultClasses || [],
+          semester_subjects: normalized.college.semesterSubjects || [],
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      }
+
+      // k. fitness_vitals
+      await supabase.from('fitness_vitals').upsert({
+        user_id: userId,
+        user_name: userName,
+        trackers: normalized.fitnessTrackers || [],
+        goals: normalized.fitnessGoals || [],
+        vitals_logs: normalized.fitnessLogs || {},
+        health_logs: normalized.healthLogs || {},
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      // l. finance_transactions
+      if (Array.isArray(normalized.finance) && normalized.finance.length > 0) {
+        const finRows = normalized.finance.map(f => ({
+          id: f.id || ('fin_' + Math.random().toString(36).slice(2, 9)),
+          user_id: userId,
+          user_name: userName,
+          type: f.type || 'expense',
+          amount: Number(f.amount || 0),
+          category: f.category || 'General',
+          date: f.date || new Date().toISOString().slice(0, 10),
+          description: f.description || '',
+          method: f.method || 'Card',
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('finance_transactions').upsert(finRows, { onConflict: 'id' });
+      }
+
+      // m. journal_and_notes
+      await supabase.from('journal_and_notes').upsert({
+        user_id: userId,
+        user_name: userName,
+        journal: normalized.journal || [],
+        notes: normalized.notes || [],
+        books: normalized.books || [],
+        mistakes: normalized.mistakes || [],
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      // 3. Keep original user_profiles table 100% synchronized as the safety net / backup
       await supabase.from('user_profiles').upsert({
         id: userId,
         data: normalized,
         updated_at: new Date().toISOString()
-      });
-    } catch (err) {}
+      }, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Multi-table sync note (graceful fallback):', err.message);
+    }
   }
   return true;
 }
@@ -606,6 +1008,58 @@ export async function handleAuthRequest(req, res, pathname, body) {
 
   if (pathname === '/api/auth/logout' && req.method === 'POST') {
     return sendJson(200, { success: true });
+  }
+
+  // User Feedback Submission
+  if (pathname === '/api/feedback' && req.method === 'POST') {
+    const { section, smoothness, workedWell, difficulties, reviewText } = body || {};
+    if (!section || !reviewText) {
+      return sendJson(400, { success: false, error: 'Please provide both the section and your feedback review text.' });
+    }
+
+    const feedbackEntry = {
+      id: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      userId: user ? user.id : 'anonymous',
+      userEmail: user ? user.email : 'guest@daystack.app',
+      userName: user ? (user.name || user.email.split('@')[0]) : 'User',
+      section: section.trim(),
+      smoothness: smoothness || 'Good',
+      workedWell: workedWell ? workedWell.trim() : '',
+      difficulties: difficulties ? difficulties.trim() : '',
+      reviewText: reviewText.trim(),
+      reviewed: false,
+      reviewedAt: null,
+      reviewedBy: null,
+      createdAt: new Date().toISOString()
+    };
+
+    const list = getFeedbackList();
+    list.unshift(feedbackEntry);
+    saveFeedbackList(list);
+
+    // Also write to Supabase if connected
+    if (supabase && user) {
+      try {
+        await supabase.from('feedback').insert({
+          id: feedbackEntry.id,
+          user_id: user.id,
+          user_email: user.email,
+          user_name: feedbackEntry.userName,
+          section: feedbackEntry.section,
+          smoothness: feedbackEntry.smoothness,
+          worked_well: feedbackEntry.workedWell,
+          difficulties: feedbackEntry.difficulties,
+          review_text: feedbackEntry.reviewText,
+          reviewed: false,
+          created_at: feedbackEntry.createdAt
+        });
+      } catch (err) {
+        console.warn('Supabase feedback insert note (local fallback succeeded):', err.message);
+      }
+    }
+
+    audit('feedback_submitted', { userId: feedbackEntry.userId, section: feedbackEntry.section });
+    return sendJson(200, { success: true, message: 'Thank you for your feedback! It helps us continuously improve DAYSTACK.', feedback: feedbackEntry });
   }
 
   // ── ADMIN PROTECTED ENDPOINTS ──────────────────────────────────────
@@ -896,7 +1350,7 @@ export async function handleAuthRequest(req, res, pathname, body) {
       return sendJson(200, { success: true, user: detail });
     }
 
-    // 4. Admin User Management Actions (Disable, Enable, Reset Onboarding, Update Profile)
+    // 4. Admin User Management Actions (Disable, Enable, Reset Onboarding, Reset Cycle, Toggle Modules, Delete Record)
     const userActionMatch = pathname.match(/^\/api\/admin\/users\/([^\/]+)\/action$/);
     if (userActionMatch && req.method === 'POST') {
       const targetUserId = userActionMatch[1];
@@ -925,6 +1379,50 @@ export async function handleAuthRequest(req, res, pathname, body) {
         return sendJson(200, { success: true, message: 'Onboarding state reset. User will see guided tour on next visit.' });
       }
 
+      if (action === 'reset_cycle') {
+        const uData = (await readUserStore(targetUserId)) || {};
+        if (!uData.settings) uData.settings = {};
+        const reason = (payload && payload.reason) || 'Admin manual cycle reset';
+        const sched = uData.settings.schedule || {};
+        if (!Array.isArray(uData.cycleHistory)) uData.cycleHistory = [];
+        uData.cycleHistory.push({
+          resetDate: new Date().toISOString().slice(0, 10),
+          cycleNumber: sched.currentCycle || 1,
+          reason,
+          previousStartDate: sched.startDate || '',
+          previousEndDate: sched.endDate || ''
+        });
+        uData.settings.schedule = createDefaultUserCycle1State({ id: targetUserId }, 90);
+        await writeUserStore(targetUserId, uData);
+        audit('cycle_reset_by_admin', { admin: user.email, targetUserId, reason });
+        return sendJson(200, { success: true, message: 'Target Cycle reset successfully for user.' });
+      }
+
+      if (action === 'toggle_modules') {
+        const { activeModules } = payload || {};
+        if (Array.isArray(activeModules)) {
+          const uData = (await readUserStore(targetUserId)) || {};
+          if (!uData.settings) uData.settings = {};
+          uData.settings.activeModules = activeModules;
+          await writeUserStore(targetUserId, uData);
+          audit('user_modules_updated', { admin: user.email, targetUserId, activeModules });
+          return sendJson(200, { success: true, message: 'Active modules updated for user.' });
+        }
+      }
+
+      if (action === 'remove_record') {
+        const { section, recordId } = payload || {};
+        const uData = (await readUserStore(targetUserId)) || {};
+        if (section && recordId) {
+          if (Array.isArray(uData[section])) {
+            uData[section] = uData[section].filter(item => item.id !== recordId);
+            await writeUserStore(targetUserId, uData);
+            audit('user_record_deleted_by_admin', { admin: user.email, targetUserId, section, recordId });
+            return sendJson(200, { success: true, message: `Record deleted from ${section}.` });
+          }
+        }
+      }
+
       if (action === 'update_profile') {
         const { name } = payload || {};
         if (name) {
@@ -940,6 +1438,88 @@ export async function handleAuthRequest(req, res, pathname, body) {
       }
 
       return sendJson(400, { success: false, error: 'Unsupported action.' });
+    }
+
+    // 5. Admin Feedback Management
+    if (pathname === '/api/admin/feedback' && req.method === 'GET') {
+      let feedbackList = [];
+      let fetchedFromDb = false;
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+          if (!error && data) {
+            feedbackList = data.map(row => ({
+              id: row.id,
+              userId: row.user_id,
+              userEmail: row.user_email,
+              userName: row.user_name || row.user_email?.split('@')[0] || 'User',
+              section: row.section,
+              smoothness: row.smoothness,
+              workedWell: row.worked_well,
+              difficulties: row.difficulties,
+              reviewText: row.review_text,
+              reviewed: row.reviewed,
+              createdAt: row.created_at
+            }));
+            fetchedFromDb = true;
+          } else if (error) {
+            console.error('Supabase fetch error (falling back to local):', error.message);
+          }
+        } catch (err) {
+          console.error('Failed fetching feedback from Supabase:', err);
+        }
+      } 
+      
+      if (!fetchedFromDb) {
+        feedbackList = getFeedbackList();
+      }
+      return sendJson(200, { success: true, feedback: feedbackList });
+    }
+
+    if (pathname === '/api/admin/feedback/review' && req.method === 'POST') {
+      const { id, reviewed } = body || {};
+      let updated = false;
+
+      // Update in Supabase
+      if (supabase) {
+        try {
+          const { error } = await supabase.from('feedback').update({ reviewed: reviewed !== false }).eq('id', id);
+          if (!error) updated = true;
+        } catch (e) { console.error('Error updating feedback in Supabase:', e); }
+      }
+
+      // Also update local fallback
+      const feedbackList = getFeedbackList();
+      const item = feedbackList.find(f => f.id === id);
+      if (item) {
+        item.reviewed = reviewed !== false;
+        item.reviewedAt = new Date().toISOString();
+        item.reviewedBy = user.email;
+        saveFeedbackList(feedbackList);
+        updated = true;
+      }
+
+      if (updated) {
+        audit('feedback_reviewed', { admin: user.email, feedbackId: id });
+        return sendJson(200, { success: true, message: 'Feedback status updated.' });
+      }
+      return sendJson(404, { success: false, error: 'Feedback item not found.' });
+    }
+
+    // 6. Admin Centralized Content Management
+    if (pathname === '/api/admin/content' && req.method === 'GET') {
+      const content = getContentConfig();
+      return sendJson(200, { success: true, content });
+    }
+
+    if (pathname === '/api/admin/content' && req.method === 'POST') {
+      const { aboutCycleDocUrl, backupPlaceholderText } = body || {};
+      const current = getContentConfig();
+      if (aboutCycleDocUrl) current.aboutCycleDocUrl = aboutCycleDocUrl.trim();
+      if (backupPlaceholderText) current.backupPlaceholderText = backupPlaceholderText.trim();
+      saveContentConfig(current);
+      audit('content_updated_by_admin', { admin: user.email, content: current });
+      return sendJson(200, { success: true, content: current, message: 'Content updated successfully.' });
     }
 
     // 5. Admin Email Templates (List, Save Custom, Delete)

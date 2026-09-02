@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DAYSTACK — Your Progress. One Day at a Time.</title>
 <meta name="description" content="DAYSTACK is your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life in one place.">
-<meta name="theme-color" content="#091120">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,8 +45,9 @@ img{max-width:100%}
   border-bottom:1px solid var(--border);
   transition:background .3s;
 }
-.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:700;color:var(--text-bright)}
-.nav-logo svg{flex-shrink:0}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-logo-svg{height:32px;width:auto;object-fit:contain;flex-shrink:0}
+.brand-text{font-family:var(--font);font-size:1.15rem;font-weight:700;letter-spacing:-.02em;color:var(--text-bright);line-height:1}
 .nav-links{display:flex;align-items:center;gap:10px}
 .nav-links a:not(.btn){
   padding:8px 14px;border-radius:8px;font-size:.875rem;font-weight:500;
@@ -385,8 +387,9 @@ footer{
 
 <!-- ── Navigation ───────────────────────────────────────────── -->
 <nav class="nav" id="mainNav">
-  <a href="/" class="nav-logo">
-    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+  <a href="index.html" class="nav-logo" aria-label="DAYSTACK Home" style="display:flex; align-items:center; gap:8px; text-decoration:none;">
+    <img src="assets/logo.png" alt="DAYSTACK" class="brand-logo-img" style="height: 38px; width: auto; object-fit: contain; display: block;">
+    <span style="font-family:var(--font-display); font-size:26px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
   </a>
   <div class="nav-links">
     <a href="#about">About</a>
@@ -852,7 +855,10 @@ footer{
 <!-- ── Footer ────────────────────────────────────────────────── -->
 <footer>
   <div class="footer-logo">
-    <img src="assets/logo.png" alt="DAYSTACK Logo" style="height: 38px; width: auto; object-fit: contain;">
+    <a href="index.html" style="display:inline-flex;align-items:center; gap:8px; text-decoration:none;" aria-label="DAYSTACK Home">
+      <img src="assets/logo.png" alt="DAYSTACK" class="brand-logo-img" style="height: 34px; width: auto; object-fit: contain; display: block;">
+      <span style="font-family:var(--font-display); font-size:22px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
+    </a>
   </div>
   <div class="footer-links">
     <a href="#about">About</a>

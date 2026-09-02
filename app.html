@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>DAYSTACK — Your Progress. One Day at a Time.</title>
   <meta name="description"
     content="DAYSTACK — Your productivity tracker for everything you need. Plan your day, build better habits, track goals, focus with Pomodoro, and organize your life.">
@@ -12,13 +11,15 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="alternate icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
   <style>
     /* Critical CSS for LCP and Layout Stability */
     .hero { display: grid; grid-template-columns: 240px 1fr; gap: 32px; background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 24px 32px; align-items: center; position: relative; overflow: hidden; }
@@ -28,6 +29,10 @@
     .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; font-family: var(--font-main); }
     .nav-item.active { background: var(--glass-strong); color: var(--accent); }
     html.auth-pending body { visibility: hidden; }
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; padding: 18px 16px; gap: 18px; text-align: center; }
+      .hero-right { align-items: center; text-align: center; }
+    }
   </style>
   <script>document.documentElement.classList.add('auth-pending');</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -44,8 +49,10 @@
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-logo-full" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-          <img src="assets/logo.png" alt="DAYSTACK Logo" class="brand-logo-img"
-            style="height: 38px; width: auto; max-width: 180px; object-fit: contain; margin-bottom: 4px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom: 4px;">
+            <img src="assets/logo.png" alt="DAYSTACK Logo" class="brand-logo-img" style="height: 38px; width: auto; object-fit: contain;">
+            <span style="font-family:var(--font-display); font-size:26px; font-weight:800; color:#a7b9cc; letter-spacing:-0.5px;">DAYSTACK</span>
+          </div>
           <div class="brand-sub" id="brandRange"></div>
         </div>
         <button type="button" class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle Sidebar (Collapse / Expand)"

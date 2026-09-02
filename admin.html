@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DAYSTACK Admin Dashboard</title>
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -225,6 +227,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <button class="admin-nav-item" onclick="showSection('users')" id="nav-users">
         <span class="ico">👥</span> Users Directory
       </button>
+      <button class="admin-nav-item" onclick="showSection('feedback')" id="nav-feedback">
+        <span class="ico">💬</span> Feedback Hub
+      </button>
+      <button class="admin-nav-item" onclick="showSection('content')" id="nav-content">
+        <span class="ico">📝</span> Content Control
+      </button>
       <button class="admin-nav-item" onclick="showSection('emails')" id="nav-emails">
         <span class="ico">📧</span> Email Center
       </button>
@@ -401,6 +409,121 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         </div>
       </div>
 
+      <!-- ── Feedback Section ───────────────────────────────────── -->
+      <div id="section-feedback" class="section-hidden">
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-label">TOTAL SUBMISSIONS</div>
+            <div class="stat-val" id="fbTotal">0</div>
+            <div class="stat-sub">User reviews &amp; suggestions</div>
+            <div class="stat-ico">💬</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-label">UNREVIEWED</div>
+            <div class="stat-val" id="fbUnreviewed">0</div>
+            <div class="stat-sub">Awaiting action</div>
+            <div class="stat-ico">🔔</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">REVIEWED</div>
+            <div class="stat-val" id="fbReviewed">0</div>
+            <div class="stat-sub">Processed by admin</div>
+            <div class="stat-ico">✓</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>💬 Feedback Submissions</h2>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <div class="search-box">
+                <span style="opacity:.5">🔍</span>
+                <input type="text" placeholder="Filter feedback..." id="feedbackSearch" oninput="renderFeedbackTable()">
+              </div>
+              <select id="feedbackSectionFilter" onchange="renderFeedbackTable()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-family:var(--font);font-size:.8rem;outline:none;">
+                <option value="all">All Sections</option>
+                <option value="Dashboard">Dashboard</option>
+                <option value="Daily Planner & Tasks">Daily Planner</option>
+                <option value="Habits & Matrix">Habits</option>
+                <option value="Pomodoro Focus Timer">Pomodoro</option>
+                <option value="Goals & Milestones">Goals</option>
+                <option value="Finance & Expenses">Finance</option>
+                <option value="Journal & Mind">Journal</option>
+                <option value="Calendar & Deadlines">Calendar</option>
+                <option value="Contest Tracker (CP)">Contests</option>
+                <option value="Exams & Academic Prediction">Exams</option>
+                <option value="Study & Coding Tracker">Study &amp; Coding</option>
+                <option value="College Timetable & Updates">College Updates</option>
+                <option value="Analytics">Analytics</option>
+                <option value="Achievements & Badges">Achievements</option>
+                <option value="Settings">Settings</option>
+                <option value="General / Other">General / Other</option>
+              </select>
+              <div class="filter-tabs">
+                <button class="ftab active" id="fbTabAll" onclick="filterFeedback('all',this)">All</button>
+                <button class="ftab" id="fbTabUnread" onclick="filterFeedback('unreviewed',this)">Unreviewed</button>
+                <button class="ftab" id="fbTabRead" onclick="filterFeedback('reviewed',this)">Reviewed</button>
+              </div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Section</th>
+                  <th>Rating</th>
+                  <th>Review Summary</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="feedbackTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">Loading feedback entries…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Content Control Section ──────────────────────────────── -->
+      <div id="section-content" class="section-hidden">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h2>📝 Centralized Platform Content Management</h2>
+          </div>
+          <div style="padding:20px;">
+            
+            <div class="form-row">
+              <label for="admCycleDocUrl">📖 Cycle Process Documentation Link (Google Doc URL)</label>
+              <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;">
+                Rendered across user Settings and Onboarding guides as "About Cycle Process". All changes reflect immediately live.
+              </p>
+              <div style="display:flex;gap:10px;">
+                <input type="url" id="admCycleDocUrl" placeholder="https://docs.google.com/document/d/..." style="flex:1;">
+                <button class="btn btn-accent" onclick="saveAdminContent()">Save Link</button>
+                <button class="btn btn-ghost" onclick="window.open(document.getElementById('admCycleDocUrl').value,'_blank')">Open ↗</button>
+              </div>
+            </div>
+
+            <div class="nav-divider" style="margin:20px 0;"></div>
+
+            <div class="form-row">
+              <label for="admBackupMsg">🚧 Data Backup Placeholder Notice Message</label>
+              <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;">
+                Displayed on the Settings page under Data Backup, Export &amp; Reports while backup infrastructure is in development.
+              </p>
+              <textarea id="admBackupMsg" rows="3" style="width:100%;"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button class="btn btn-accent" onclick="saveAdminContent()">Update Notice</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <!-- ── Audit Section ─────────────────────────────────────── -->
       <div id="section-audit" class="section-hidden">
         <div class="card">
@@ -500,20 +623,28 @@ let usersCache = [];
 })();
 
 function showSection(name) {
-  ['overview','users','emails','audit'].forEach(s => {
-    document.getElementById(`section-${s}`).classList.toggle('section-hidden', s !== name);
-    document.getElementById(`nav-${s}`).classList.toggle('active', s === name);
+  ['overview','users','feedback','content','emails','audit'].forEach(s => {
+    const sec = document.getElementById(`section-${s}`);
+    if (sec) sec.classList.toggle('section-hidden', s !== name);
+    const nav = document.getElementById(`nav-${s}`);
+    if (nav) nav.classList.toggle('active', s === name);
   });
   currentSection = name;
   const titles = {
     overview: ['Platform Overview','Real-time stats and Cycle 1 data isolation oversight'],
     users: ['Users Directory','Search, filter, inspect and manage user accounts'],
+    feedback: ['Feedback Hub','Review user experiences, suggestions, and feature requests'],
+    content: ['Content Control','Manage platform documentation links and placeholder notices'],
     emails: ['Email Center','Compose and dispatch targeted campaigns with 7 system drafts'],
     audit: ['Audit Log','Track administrative and security events']
   };
-  document.getElementById('section-title').textContent = titles[name][0];
-  document.getElementById('section-sub').textContent   = titles[name][1];
+  if (titles[name]) {
+    document.getElementById('section-title').textContent = titles[name][0];
+    document.getElementById('section-sub').textContent   = titles[name][1];
+  }
   if (name === 'users') loadUsers();
+  if (name === 'feedback') loadFeedback();
+  if (name === 'content') loadAdminContent();
   if (name === 'emails') loadEmailHistory();
   if (name === 'audit') loadFullAudit();
 }
@@ -521,9 +652,203 @@ function showSection(name) {
 function refreshAll() {
   if (currentSection === 'overview') { loadStats(); loadAuditPreview(); }
   if (currentSection === 'users') loadUsers();
+  if (currentSection === 'feedback') loadFeedback();
+  if (currentSection === 'content') loadAdminContent();
   if (currentSection === 'emails') loadEmailHistory();
   if (currentSection === 'audit') loadFullAudit();
   toast('Refreshed ✓');
+}
+
+// ── Feedback Management Logic ──────────────────────────────
+let feedbackCache = [];
+let feedbackFilterStatus = 'all';
+
+async function loadFeedback() {
+  const tbody = document.getElementById('feedbackTableBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">Loading feedback entries…</td></tr>';
+  try {
+    const res = await fetch('/api/admin/feedback');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.feedback)) {
+      feedbackCache = data.feedback;
+      const unreviewed = feedbackCache.filter(f => !f.reviewed).length;
+      const reviewed = feedbackCache.filter(f => f.reviewed).length;
+      document.getElementById('fbTotal').textContent = feedbackCache.length;
+      document.getElementById('fbUnreviewed').textContent = unreviewed;
+      document.getElementById('fbReviewed').textContent = reviewed;
+      renderFeedbackTable();
+    }
+  } catch (err) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--error);">Failed to load feedback.</td></tr>';
+  }
+}
+
+function filterFeedback(status, btn) {
+  feedbackFilterStatus = status;
+  document.querySelectorAll('#section-feedback .ftab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderFeedbackTable();
+}
+
+function renderFeedbackTable() {
+  const tbody = document.getElementById('feedbackTableBody');
+  if (!tbody) return;
+
+  const query = (document.getElementById('feedbackSearch')?.value || '').toLowerCase().trim();
+  const secFilter = document.getElementById('feedbackSectionFilter')?.value || 'all';
+
+  let list = feedbackCache.slice();
+  if (feedbackFilterStatus === 'unreviewed') list = list.filter(f => !f.reviewed);
+  if (feedbackFilterStatus === 'reviewed') list = list.filter(f => f.reviewed);
+  if (secFilter !== 'all') list = list.filter(f => f.section === secFilter);
+  if (query) {
+    list = list.filter(f =>
+      (f.userEmail || '').toLowerCase().includes(query) ||
+      (f.userName || '').toLowerCase().includes(query) ||
+      (f.section || '').toLowerCase().includes(query) ||
+      (f.reviewText || '').toLowerCase().includes(query) ||
+      (f.workedWell || '').toLowerCase().includes(query)
+    );
+  }
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">No feedback entries matching filter.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(f => {
+    const statusBadge = f.reviewed ?
+      '<span class="badge badge-green">Reviewed</span>' :
+      '<span class="badge badge-warn">Unreviewed</span>';
+    
+    return `
+      <tr>
+        <td>
+          <strong style="color:var(--text-bright);display:block;">${esc(f.userName || 'Member')}</strong>
+          <span style="font-size:.75rem;color:var(--text-dim);font-family:var(--mono);">${esc(f.userEmail || 'guest')}</span>
+        </td>
+        <td><span class="badge badge-blue">${esc(f.section)}</span></td>
+        <td style="font-size:.8rem;font-weight:600;">${esc(f.smoothness || 'Good')}</td>
+        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:.8rem;">
+          ${esc(f.reviewText)}
+        </td>
+        <td style="font-size:.75rem;color:var(--text-dim);">${fmtDate(f.createdAt).split(',')[0]}</td>
+        <td>${statusBadge}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" onclick="inspectFeedback('${f.id}')">👁️ View</button>
+          <button class="btn btn-sm ${f.reviewed ? 'btn-ghost' : 'btn-accent'}" onclick="toggleFeedbackReviewed('${f.id}', ${!f.reviewed})">
+            ${f.reviewed ? 'Unmark' : '✓ Review'}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function inspectFeedback(id) {
+  const item = feedbackCache.find(f => f.id === id);
+  if (!item) return;
+
+  openAdminModal(`Feedback: ${esc(item.section)}`, `
+    <div style="font-size:.85rem;line-height:1.6;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg3);border-radius:10px;margin-bottom:14px;">
+        <div>
+          <strong style="color:var(--text-bright);font-size:.95rem;">${esc(item.userName || 'Member')}</strong>
+          <div style="color:var(--text-dim);font-size:.75rem;">${esc(item.userEmail || 'anonymous')} • ${fmtDate(item.createdAt)}</div>
+        </div>
+        <span class="badge ${item.reviewed ? 'badge-green' : 'badge-warn'}">${item.reviewed ? 'Reviewed' : 'Unreviewed'}</span>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div style="font-size:.75rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;">Workflow Smoothness Rating</div>
+        <div style="color:var(--accent);font-weight:700;font-size:1rem;margin-top:2px;">${esc(item.smoothness || 'Good')}</div>
+      </div>
+
+      ${item.workedWell ? `
+      <div style="margin-bottom:12px;background:var(--bg3);padding:10px 12px;border-radius:8px;">
+        <div style="font-size:.75rem;color:var(--success);font-weight:700;">🌟 What Worked Well:</div>
+        <div style="color:var(--text);margin-top:4px;">${esc(item.workedWell)}</div>
+      </div>` : ''}
+
+      ${item.difficulties ? `
+      <div style="margin-bottom:12px;background:var(--bg3);padding:10px 12px;border-radius:8px;">
+        <div style="font-size:.75rem;color:var(--warn);font-weight:700;">⚠️ Difficulties / Friction Points:</div>
+        <div style="color:var(--text);margin-top:4px;">${esc(item.difficulties)}</div>
+      </div>` : ''}
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:.75rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;">Full Review / Description</div>
+        <div style="background:var(--bg3);padding:12px;border-radius:8px;margin-top:4px;color:var(--text-bright);white-space:pre-wrap;line-height:1.6;">${esc(item.reviewText)}</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn btn-ghost" onclick="closeAdminModal()">Close</button>
+        <button class="btn ${item.reviewed ? 'btn-ghost' : 'btn-accent'}" onclick="toggleFeedbackReviewed('${item.id}', ${!item.reviewed}); closeAdminModal();">
+          ${item.reviewed ? 'Mark as Unreviewed' : '✓ Mark as Reviewed'}
+        </button>
+      </div>
+    </div>
+  `);
+}
+
+async function toggleFeedbackReviewed(id, reviewed) {
+  try {
+    const res = await fetch('/api/admin/feedback/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, reviewed })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(reviewed ? '✓ Feedback marked as reviewed' : 'Feedback marked unreviewed');
+      loadFeedback();
+    } else {
+      toast(data.error || 'Failed to update feedback', 'error');
+    }
+  } catch (err) {
+    toast('Network error updating feedback', 'error');
+  }
+}
+
+// ── Content Management Logic ──────────────────────────────
+async function loadAdminContent() {
+  try {
+    const res = await fetch('/api/admin/content');
+    const data = await res.json();
+    if (data.success && data.content) {
+      if (document.getElementById('admCycleDocUrl')) {
+        document.getElementById('admCycleDocUrl').value = data.content.aboutCycleDocUrl || '';
+      }
+      if (document.getElementById('admBackupMsg')) {
+        document.getElementById('admBackupMsg').value = data.content.backupPlaceholderText || '';
+      }
+    }
+  } catch (err) {}
+}
+
+async function saveAdminContent() {
+  const aboutCycleDocUrl = document.getElementById('admCycleDocUrl')?.value?.trim();
+  const backupPlaceholderText = document.getElementById('admBackupMsg')?.value?.trim();
+
+  if (!aboutCycleDocUrl) return toast('Cycle documentation link cannot be empty', 'error');
+
+  toast('Saving content updates…');
+  try {
+    const res = await fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aboutCycleDocUrl, backupPlaceholderText })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('✅ Content updated live across platform!');
+      loadAdminContent();
+    } else {
+      toast(data.error || 'Failed to save content', 'error');
+    }
+  } catch (err) {
+    toast('Network error saving content', 'error');
+  }
 }
 
 async function loadStats() {
@@ -714,19 +1039,27 @@ async function sendAdminEmail(){
   }
 }
 
-async function adminUserAction(userId, action) {
+async function adminUserAction(userId, action, payload = {}) {
   const msgs = {
     disable: 'Are you sure you want to deactivate this account? They will lose access immediately.',
     enable: 'Are you sure you want to reactivate this account?',
-    reset_onboarding: 'Are you sure you want to reset onboarding? The user will have to complete the setup tour again.'
+    reset_onboarding: 'Are you sure you want to reset onboarding? The user will have to complete the setup tour again.',
+    reset_cycle: 'Are you sure you want to RESET this user\'s Target Cycle? Their current progress will be archived to cycle history and a fresh Cycle 1 will begin.'
   };
-  if (!confirm(msgs[action])) return;
+
+  if (action === 'reset_cycle') {
+    const reason = prompt('Please enter a reason for resetting this user\'s cycle:', 'Admin intervention / target recalibration');
+    if (!reason) return;
+    payload.reason = reason;
+  } else if (msgs[action]) {
+    if (!confirm(msgs[action])) return;
+  }
 
   try {
     const res = await fetch(`/api/admin/users/${userId}/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action })
+      body: JSON.stringify({ action, payload })
     });
     const data = await res.json();
     if (data.success) {
@@ -756,7 +1089,7 @@ async function inspectUser(userId) {
     else statusBadge = '<span class="badge" style="background:var(--bg3);color:var(--text-dim);">Inactive</span>';
 
     // Build Modal
-    openAdminModal(`Member Overview`, `
+    openAdminModal(`Member Deep-Dive: ${esc(u.account.name || 'Member')}`, `
       <div style="font-size:.85rem;line-height:1.6;">
         
         <!-- Identity Block -->
@@ -794,9 +1127,9 @@ async function inspectUser(userId) {
             </div>
           </div>
 
-          <!-- Personalization -->
+          <!-- Target Cycle -->
           <div>
-            <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Personalization</h3>
+            <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Target Cycle State</h3>
             <div style="background:var(--bg3);padding:12px;border-radius:10px;">
               <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
                 <span style="color:var(--text-dim)">Target</span>
@@ -804,39 +1137,47 @@ async function inspectUser(userId) {
               </div>
               <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
                 <span style="color:var(--text-dim)">Cycle</span>
-                <span style="color:var(--text-bright)">${u.targetCycle.currentCycle} (${u.targetCycle.status})</span>
+                <span style="color:var(--text-bright)">Cycle ${u.targetCycle.currentCycle} (${u.targetCycle.status})</span>
               </div>
               <div style="display:flex;justify-content:space-between;">
-                <span style="color:var(--text-dim)">Progress</span>
-                <span style="color:var(--accent)">${u.targetCycle.scores?.overallScore || 0}%</span>
+                <span style="color:var(--text-dim)">Range</span>
+                <span style="color:var(--accent);font-size:.75rem;">${u.targetCycle.startDate || '—'} → ${u.targetCycle.endDate || '—'}</span>
               </div>
             </div>
           </div>
 
         </div>
 
-        <!-- Activity Summary (Privacy Preserving) -->
-        <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Activity Summary</h3>
-        <div style="background:var(--bg3);padding:12px;border-radius:10px;display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;text-align:center;margin-bottom:18px;">
-          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.totalTasksCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Tasks</div></div>
-          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.activeHabitsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Active Habits</div></div>
-          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.pomodoroSessions}</div><div style="font-size:.7rem;color:var(--text-dim)">Pomo Sessions</div></div>
-          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.goalsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Goals Set</div></div>
+        <!-- Section Metrics Breakdown -->
+        <h3 style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Section-by-Section Data Activity</h3>
+        <div style="background:var(--bg3);padding:12px;border-radius:10px;display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;text-align:center;margin-bottom:18px;">
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.totalTasksCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Tasks (${u.activity.completedTasksCount} done)</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.activeHabitsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Habits</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.pomodoroSessions}</div><div style="font-size:.7rem;color:var(--text-dim)">Focus Sprints</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.goalsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Goals (${u.activity.completedGoalsCount} done)</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.projectsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Projects</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.contestsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Contests</div></div>
+          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.examsCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Exams</div></div>
           <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.journalEntriesCount}</div><div style="font-size:.7rem;color:var(--text-dim)">Journal Entries</div></div>
-          <div><div style="font-size:1.1rem;color:var(--text-bright);font-weight:700">${u.activity.financeEntriesCount > 0 ? 'Enabled' : 'Disabled'}</div><div style="font-size:.7rem;color:var(--text-dim)">Finance Mod</div></div>
         </div>
 
-        <!-- Admin Actions -->
-        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border);">
-          <div style="display:flex;gap:8px;">
-            ${u.account.disabled 
-              ? `<button class="btn btn-ghost btn-sm" style="color:var(--success);border-color:rgba(74,222,128,0.3)" onclick="adminUserAction('${u.account.id}', 'enable')">🟢 Reactivate Account</button>`
-              : `<button class="btn btn-ghost btn-sm" style="color:var(--error);border-color:rgba(248,113,113,0.3)" onclick="adminUserAction('${u.account.id}', 'disable')">🔴 Deactivate Account</button>`
-            }
+        <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);padding:10px 14px;border-radius:8px;margin-bottom:18px;font-size:.75rem;color:var(--warn);display:flex;align-items:center;gap:8px;">
+          <span>🔒</span>
+          <span>Privacy Protection: Private reflection notes and sensitive credentials are isolated and restricted to administrative audit verification.</span>
+        </div>
+
+        <!-- Admin Actions Bar -->
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" style="color:var(--warn);border-color:rgba(234,179,8,0.3)" onclick="adminUserAction('${u.account.id}', 'reset_cycle')">🎯 Reset Target Cycle</button>
             <button class="btn btn-ghost btn-sm" onclick="adminUserAction('${u.account.id}', 'reset_onboarding')">↺ Reset Onboarding</button>
+            ${u.account.disabled 
+              ? `<button class="btn btn-ghost btn-sm" style="color:var(--success);border-color:rgba(74,222,128,0.3)" onclick="adminUserAction('${u.account.id}', 'enable')">🟢 Reactivate</button>`
+              : `<button class="btn btn-ghost btn-sm" style="color:var(--error);border-color:rgba(248,113,113,0.3)" onclick="adminUserAction('${u.account.id}', 'disable')">🔴 Deactivate</button>`
+            }
           </div>
           
-          <button class="btn btn-accent" onclick="closeAdminModal(); showSection('emails'); document.getElementById('emailRecType').value='specific'; toggleEmailRecipientField(); document.getElementById('emailSpecificInput').value='${esc(u.account.email)}';">✉️ Message</button>
+          <button class="btn btn-accent btn-sm" onclick="closeAdminModal(); showSection('emails'); document.getElementById('emailRecType').value='specific'; toggleEmailRecipientField(); document.getElementById('emailSpecificInput').value='${esc(u.account.email)}';">✉️ Direct Message</button>
         </div>
 
       </div>
@@ -851,11 +1192,11 @@ async function loadAuditPreview() {
   try {
     const res  = await fetch('/api/admin/audit');
     const data = await res.json();
-    if (!data.success || !data.log.length) {
+    if (!data.success || !data.logs || !data.logs.length) {
       container.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No events recorded yet.</div>';
       return;
     }
-    container.innerHTML = data.log.slice(0, 8).map(e => `
+    container.innerHTML = data.logs.slice(0, 8).map(e => `
       <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.8rem;">
         <div>
           <strong style="color:var(--text-bright)">${esc(e.action)}</strong>
@@ -872,11 +1213,11 @@ async function loadFullAudit() {
   try {
     const res  = await fetch('/api/admin/audit');
     const data = await res.json();
-    if (!data.success || !data.log.length) {
+    if (!data.success || !data.logs || !data.logs.length) {
       container.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No events recorded yet.</div>';
       return;
     }
-    container.innerHTML = data.log.map(e => `
+    container.innerHTML = data.logs.map(e => `
       <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem;">
         <div>
           <strong style="color:var(--text-bright)">${esc(e.action)}</strong>

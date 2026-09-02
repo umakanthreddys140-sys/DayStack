@@ -246,7 +246,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ── Auth API routes ──────────────────────────────────────────────
-  if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/admin/')) {
+  if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/admin/') || pathname === '/api/feedback') {
     const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
     const handled = await handleAuthRequest(req, res, pathname, body);
     if (handled !== false) return;
@@ -632,7 +632,8 @@ Keep it under 90 words. Do not use markdown backticks.`;
     return sendJson(res, 200, {
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-      appUrl: process.env.APP_URL || `http://${req.headers.host}`
+      appUrl: process.env.APP_URL || `http://${req.headers.host}`,
+      adminEmail: process.env.ADMIN_EMAIL || 'umakanthreddyannem2007@gmail.com'
     });
   }
 

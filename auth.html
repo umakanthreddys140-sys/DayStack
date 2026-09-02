@@ -538,7 +538,7 @@ async function googleLogin() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: (appConfig?.appUrl || window.location.origin) + '/app.html'
+      redirectTo: appConfig?.appUrl ? appConfig.appUrl + '/app.html' : new URL('app.html', window.location.href).href
     }
   });
 
@@ -571,7 +571,7 @@ document.getElementById('registerForm').addEventListener('submit', async e => {
       password: password,
       options: {
         data: { name, phone },
-        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth.html'
+        emailRedirectTo: appConfig?.appUrl ? appConfig.appUrl + '/auth.html' : new URL('auth.html', window.location.href).href
       }
     });
 
@@ -658,7 +658,7 @@ async function resendConfirmationEmail() {
       type: 'signup',
       email: pendingEmail,
       options: {
-        emailRedirectTo: (appConfig?.appUrl || window.location.origin) + '/auth.html'
+        emailRedirectTo: appConfig?.appUrl ? appConfig.appUrl + '/auth.html' : new URL('auth.html', window.location.href).href
       }
     });
 
